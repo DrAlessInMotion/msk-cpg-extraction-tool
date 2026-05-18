@@ -1,0 +1,172 @@
+You are assessing this clinical practice guideline using the AGREE II instrument. For each of the 23 items, assign a score from 1 to 7 using the criteria below. Your score must reflect how many of the listed criteria are met: score 1 if no relevant information is present; score 7 if all criteria are fully met; assign intermediate scores proportionally. For each item, your rationale must explicitly state which criteria were met, which were not met or not found, and cite the specific text or section that informed your judgment. If information is absent, state explicitly what was missing.
+
+Return ONLY a single valid JSON object. No preamble, no explanation, no markdown fences.
+
+════════════════════════════════════════════════════
+DOMAIN 1 — SCOPE AND PURPOSE
+════════════════════════════════════════════════════
+
+Item 1 (D1_Objectives_Described) — The overall objective(s) of the guideline is (are) specifically described.
+Criteria: (1) health intent described (prevention/screening/diagnosis/treatment); (2) expected benefit or outcome specified; (3) target population or society identified.
+Where to look: introduction, scope, purpose, rationale, background, objectives.
+
+Item 2 (D1_HealthQuestions_Described) — The health question(s) covered by the guideline is (are) specifically described.
+Criteria: (1) target population specified; (2) intervention(s) or exposure(s) described; (3) comparisons stated if appropriate; (4) outcome(s) described; (5) health care setting or context described.
+Where to look: introduction, scope, purpose, rationale, background, questions.
+
+Item 3 (D1_Population_Described) — The population to whom the guideline is meant to apply is specifically described.
+Criteria: (1) target population, sex/gender, and age range described; (2) clinical condition described if relevant; (3) severity or stage of disease described if relevant; (4) comorbidities described if relevant; (5) excluded populations described if relevant.
+Where to look: introduction, scope, patient population, target population sections.
+
+════════════════════════════════════════════════════
+DOMAIN 2 — STAKEHOLDER INVOLVEMENT
+════════════════════════════════════════════════════
+
+Item 4 (D2_RelevantProfessionals_Included) — The guideline development group includes individuals from all relevant professional groups.
+Criteria: For each member the following is provided: (1) name; (2) discipline or content expertise; (3) institution; (4) geographical location; (5) description of role in guideline development. Additional: at least one methodology expert present (e.g., systematic review expert, epidemiologist, statistician).
+Where to look: introduction, acknowledgements, appendices, methods, guideline panel member list.
+
+Item 5 (D2_TargetPopViews_Sought) — The views and preferences of the target population have been sought.
+Criteria: (1) type of strategy used to capture patient/public views stated; (2) methods by which views were sought described; (3) outcomes or information gathered from patient/public described; (4) description of how information was used to inform guideline development or recommendations.
+Where to look: scope, methods, external review, target population perspectives sections.
+
+Item 6 (D2_TargetUsers_Defined) — The target users of the guideline are clearly defined.
+Criteria: (1) clear description of intended audience; (2) description of how the guideline may be used by its target audience.
+Where to look: introduction, target user, intended user sections.
+
+════════════════════════════════════════════════════
+DOMAIN 3 — RIGOUR OF DEVELOPMENT
+════════════════════════════════════════════════════
+
+Item 7 (D3_SystematicSearch_Used) — Systematic methods were used to search for evidence.
+Criteria: (1) named electronic database(s) or evidence source(s); (2) time periods searched; (3) search terms used; (4) full search strategy included.
+Where to look: methods, literature search strategy, appendices.
+
+Item 8 (D3_SelectionCriteria_Described) — The criteria for selecting the evidence are clearly described.
+Criteria: (1) inclusion criteria described including target population, study design, comparisons, outcomes, language, context; (2) exclusion criteria described.
+Where to look: methods, literature search, inclusion/exclusion criteria, appendices.
+
+Item 9 (D3_EvidenceStrengthsLimits_Described) — The strengths and limitations of the body of evidence are clearly described.
+Criteria: (1) descriptions of how evidence was evaluated for bias; (2) how evidence was interpreted by the development group; (3) aspects addressed include study design, methodology limitations, consistency of results, direction of results, magnitude of benefit versus harm, applicability.
+Where to look: methods, results, discussion, evidence tables.
+
+Item 10 (D3_FormulationMethods_Described) — The methods for formulating the recommendations are clearly described.
+Criteria: (1) description of the recommendation development process; (2) outcomes of the process; (3) description of how the process influenced the recommendations.
+Where to look: methods, guideline development process sections.
+
+Item 11 (D3_BenefitsRisks_Considered) — The health benefits, side effects, and risks have been considered in formulating the recommendations.
+Criteria: (1) supporting data and report of benefits; (2) supporting data and report of harms/side effects/risks; (3) reporting of balance between benefits and harms; (4) recommendations reflect considerations of both.
+Where to look: methods, interpretation, discussion, recommendations.
+
+Item 12 (D3_Link_EvidenceToRecs) — There is an explicit link between the recommendations and the supporting evidence.
+Criteria: (1) guideline describes how development group linked evidence to recommendations; (2) each recommendation linked to evidence description or reference list; (3) recommendations linked to evidence summaries or tables.
+Where to look: recommendations, key evidence sections.
+
+Item 13 (D3_ExternalReview_Conducted) — The guideline has been externally reviewed by experts prior to its publication.
+Criteria: (1) purpose and intent of external review described; (2) methods used described; (3) description of external reviewers; (4) outcomes gathered from external review described; (5) description of how information was used to inform guideline development.
+Where to look: methods, results, acknowledgements.
+
+Item 14 (D3_UpdateProcedure_Provided) — A procedure for updating the guideline is provided.
+Criteria: (1) statement that guideline will be updated; (2) explicit time interval or criteria for triggering update; (3) methodology for updating procedure reported.
+Where to look: introduction, methods, guideline update, closing sections.
+
+════════════════════════════════════════════════════
+DOMAIN 4 — CLARITY OF PRESENTATION
+════════════════════════════════════════════════════
+
+Item 15 (D4_Recs_Specific_Unambiguous) — The recommendations are specific and unambiguous.
+Criteria: (1) statement of the recommended action; (2) identification of intent or purpose of the action; (3) identification of the relevant population; (4) caveats or qualifying statements if relevant.
+Where to look: recommendations, executive summary sections.
+
+Item 16 (D4_ManagementOptions_Presented) — The different options for management of the condition or health issue are clearly presented.
+Criteria: (1) description of options; (2) description of population or clinical situation most appropriate to each option. Note: more relevant to broad-scope guidelines covering management of a condition.
+Where to look: executive summary, recommendations, discussion, treatment options sections.
+
+Item 17 (D4_KeyRecs_Identifiable) — Key recommendations are easily identifiable.
+Criteria: (1) key recommendations presented in a summarised box, bold, underlined, or as flow charts/algorithms; (2) specific recommendations grouped together in one section.
+Where to look: executive summary, conclusions, recommendations sections.
+
+════════════════════════════════════════════════════
+DOMAIN 5 — APPLICABILITY
+════════════════════════════════════════════════════
+
+Item 18 (D5_BarriersFacilitators_Described) — The guideline describes facilitators and barriers to its application.
+Criteria: (1) identification of types of facilitators and barriers considered; (2) methods by which information on facilitators/barriers was sought; (3) information or description of facilitators/barriers that emerged; (4) description of how this influenced guideline development or recommendations.
+Where to look: dissemination/implementation, quality indicators, barriers sections.
+
+Item 19 (D5_ApplicationTools_Provided) — The guideline provides advice and/or tools on how the recommendations can be put into practice.
+Criteria: (1) implementation section present; (2) tools and resources present (summary documents, checklists, algorithms, how-to manuals, pilot test outcomes); (3) directions on how to access tools and resources.
+Where to look: implementation, tools, resources, appendices sections.
+
+Item 20 (D5_ResourceImplications_Considered) — The potential resource implications of applying the recommendations have been considered.
+Criteria: (1) types of cost information considered identified; (2) methods by which cost information was sought described; (3) cost findings described; (4) description of how cost information was used to inform guideline development.
+Where to look: methods, cost utility, cost effectiveness, budget implications sections.
+
+Item 21 (D5_MonitoringCriteria_Presented) — The guideline presents monitoring and/or auditing criteria.
+Criteria: (1) monitoring or auditing criteria provided; (2) criteria clearly derived from key recommendations; (3) type of measure specified (process, behavioural, clinical, or outcome).
+Where to look: recommendations, quality indicators, monitoring, audit sections.
+
+════════════════════════════════════════════════════
+DOMAIN 6 — EDITORIAL INDEPENDENCE
+════════════════════════════════════════════════════
+
+Item 22 (D6_FundingBody_NoInfluence) — The views of the funding body have not influenced the content of the guideline.
+Criteria: (1) name of funding body provided; (2) explicit statement that views or interests of the funding body have not influenced the final recommendations.
+Where to look: preface, methods, acknowledgements, funding sections.
+
+Item 23 (D6_CompetingInterests_Recorded) — Competing interests of members of the guideline development group have been recorded and addressed.
+Criteria: (1) statement that interests of development group members have been sought; (2) types of interests sought described; (3) methods by which interests were sought and recorded described; (4) description of how interests identified were addressed.
+Where to look: preface, methods, acknowledgements, appendices, conflict of interest sections.
+
+════════════════════════════════════════════════════
+OUTPUT SCHEMA (use these exact key names; rating fields must be integers 1-7):
+════════════════════════════════════════════════════
+{
+  "D1_Objectives_Described":              <integer 1-7>,
+  "D1_Objectives_Rationale":              "<rationale: which criteria met/unmet + cited text>",
+  "D1_HealthQuestions_Described":         <integer 1-7>,
+  "D1_HealthQuestions_Rationale":         "<rationale: which criteria met/unmet + cited text>",
+  "D1_Population_Described":              <integer 1-7>,
+  "D1_Population_Rationale":              "<rationale: which criteria met/unmet + cited text>",
+  "D2_RelevantProfessionals_Included":    <integer 1-7>,
+  "D2_RelevantProfessionals_Rationale":   "<rationale: which criteria met/unmet + cited text>",
+  "D2_TargetPopViews_Sought":             <integer 1-7>,
+  "D2_TargetPopViews_Rationale":          "<rationale: which criteria met/unmet + cited text>",
+  "D2_TargetUsers_Defined":               <integer 1-7>,
+  "D2_TargetUsers_Rationale":             "<rationale: which criteria met/unmet + cited text>",
+  "D3_SystematicSearch_Used":             <integer 1-7>,
+  "D3_SystematicSearch_Rationale":        "<rationale: which criteria met/unmet + cited text>",
+  "D3_SelectionCriteria_Described":       <integer 1-7>,
+  "D3_SelectionCriteria_Rationale":       "<rationale: which criteria met/unmet + cited text>",
+  "D3_EvidenceStrengthsLimits_Described": <integer 1-7>,
+  "D3_EvidenceStrengthsLimits_Rationale": "<rationale: which criteria met/unmet + cited text>",
+  "D3_FormulationMethods_Described":      <integer 1-7>,
+  "D3_FormulationMethods_Rationale":      "<rationale: which criteria met/unmet + cited text>",
+  "D3_BenefitsRisks_Considered":          <integer 1-7>,
+  "D3_BenefitsRisks_Rationale":           "<rationale: which criteria met/unmet + cited text>",
+  "D3_Link_EvidenceToRecs":               <integer 1-7>,
+  "D3_Link_Rationale":                    "<rationale: which criteria met/unmet + cited text>",
+  "D3_ExternalReview_Conducted":          <integer 1-7>,
+  "D3_ExternalReview_Rationale":          "<rationale: which criteria met/unmet + cited text>",
+  "D3_UpdateProcedure_Provided":          <integer 1-7>,
+  "D3_UpdateProcedure_Rationale":         "<rationale: which criteria met/unmet + cited text>",
+  "D4_Recs_Specific_Unambiguous":         <integer 1-7>,
+  "D4_Recs_Specific_Rationale":           "<rationale: which criteria met/unmet + cited text>",
+  "D4_ManagementOptions_Presented":       <integer 1-7>,
+  "D4_ManagementOptions_Rationale":       "<rationale: which criteria met/unmet + cited text>",
+  "D4_KeyRecs_Identifiable":              <integer 1-7>,
+  "D4_KeyRecs_Rationale":                 "<rationale: which criteria met/unmet + cited text>",
+  "D5_BarriersFacilitators_Described":    <integer 1-7>,
+  "D5_BarriersFacilitators_Rationale":    "<rationale: which criteria met/unmet + cited text>",
+  "D5_ApplicationTools_Provided":         <integer 1-7>,
+  "D5_ApplicationTools_Rationale":        "<rationale: which criteria met/unmet + cited text>",
+  "D5_ResourceImplications_Considered":   <integer 1-7>,
+  "D5_ResourceImplications_Rationale":    "<rationale: which criteria met/unmet + cited text>",
+  "D5_MonitoringCriteria_Presented":      <integer 1-7>,
+  "D5_MonitoringCriteria_Rationale":      "<rationale: which criteria met/unmet + cited text>",
+  "D6_FundingBody_NoInfluence":           <integer 1-7>,
+  "D6_FundingBody_Rationale":             "<rationale: which criteria met/unmet + cited text>",
+  "D6_CompetingInterests_Recorded":       <integer 1-7>,
+  "D6_CompetingInterests_Rationale":      "<rationale: which criteria met/unmet + cited text>",
+  "AGREEII_Recommendation":              "<2-4 sentence narrative recommendation based on domain scores>"
+}
