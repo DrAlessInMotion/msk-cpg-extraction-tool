@@ -198,7 +198,13 @@ MANDATORY BOUNDARY CONDITIONS
    For any Tier 2 field where sex and gender terms are entirely absent from the guideline, return the
    evidence field as "No sex or gender related terms identified in this guideline."
    For any field where terms are present but usage is ambiguous, return a direct quote showing the
-   ambiguous usage rather than a paraphrase.\
+   ambiguous usage rather than a paraphrase.
+
+8. FUTURE RESEARCH SUGGESTIONS
+   Sentences or passages that recommend further study, call for additional research, or note that sex
+   or gender subgroups should be investigated in future do not constitute sex- or gender-specific
+   clinical content. They must not elevate a domain rating above 1. Only current, actionable clinical
+   content counts toward domain ratings.\
 """
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
@@ -386,35 +392,6 @@ USER_PROMPT_TEMPLATE = (
 AGREE_II_USER_PROMPT = (
     "Assess the following clinical practice guideline using the AGREE II framework.\n\n"
     "GUIDELINE TEXT:\n{text}"
-)
-
-# Domain 2 only — for re-assessment with supplementary committee document
-D2_ONLY_SYSTEM_PROMPT = """\
-You are a systematic reviewer assessing a clinical practice guideline using the AGREE II framework, \
-specifically Domain 2 — Stakeholder Involvement (Items 4, 5, and 6 only).
-
-Use both the guideline text AND any supplementary committee membership information to inform Domain 2.
-For each of the three items return:
-1. A numeric rating 1–7 (integer only) using the same scale as the full AGREE II assessment:
-   1=no relevant info; 2-3=minimal; 4=partial; 5-6=substantial; 7=exceptional/all criteria met.
-2. A mandatory rationale (minimum one sentence) citing specific text or AGREE II criteria.
-
-Return ONLY a valid JSON object with these exact keys (rating fields must be integers 1–7):
-{
-  "D2_RelevantProfessionals_Included":  <integer 1-7>,
-  "D2_RelevantProfessionals_Rationale": "<rationale>",
-  "D2_TargetPopViews_Sought":           <integer 1-7>,
-  "D2_TargetPopViews_Rationale":        "<rationale>",
-  "D2_TargetUsers_Defined":             <integer 1-7>,
-  "D2_TargetUsers_Rationale":           "<rationale>"
-}\
-"""
-
-
-D2_ONLY_USER_PROMPT = (
-    "Assess Domain 2 (Stakeholder Involvement) items from the following guideline.\n\n"
-    "GUIDELINE TEXT:\n{text}\n\n"
-    "SUPPLEMENTARY COMMITTEE MEMBERSHIP INFORMATION (external source — Domain 2 only):\n{supplementary}"
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -924,8 +901,6 @@ if uploaded:
         st.session_state["_last_filename"] = uploaded.name
         for _k in ("t3b_chair", "t3b_clin", "t3b_lay"):
             st.session_state.pop(_k, None)
-        for _k in ("d2_supp_pdf_text", "d2_supp_pdf_size", "d2_supp_pdf_filename"):
-            st.session_state.pop(_k, None)
 
     with st.spinner("Extracting PDF text…"):
         try:
@@ -1039,13 +1014,6 @@ if st.session_state.parsed_data:
     st.markdown("## Extraction results")
     st.caption(
         "Review all fields. Tick the sign-off checkbox at the bottom of each section before exporting."
-    )
-
-    # Capture D2 supplementary flag early so build_row() closure sees the correct value.
-    # True if text was pasted OR a supplementary PDF was uploaded (even if text area was cleared).
-    _d2_supplementary_used = bool(
-        st.session_state.get("d2_supplementary", "").strip()
-        or st.session_state.get("d2_supp_pdf_text", "").strip()
     )
 
     edits: dict = {}
@@ -1354,94 +1322,6 @@ if st.session_state.parsed_data:
     for domain in AGREE_II_DOMAINS:
         st.markdown(f"**{domain['name']}**")
 
-        # Domain 2 supplementary document
-        if domain["key"] == "D2":
-            with st.expander("📄 Supplementary committee document (optional — Domain 2 only)", expanded=False):
-                st.markdown(
-                    "You may upload a PDF or paste text directly. Uploaded PDF text will be extracted "
-                    "and shown below for your review. This information is used **only** to inform "
-                    "Domain 2 AGREE II items (stakeholder involvement) and will not affect any other "
-                    "part of the extraction."
-                )
-
-                # ── PDF upload ────────────────────────────────────────────────
-                _d2_pdf_upload = st.file_uploader(
-                    "Upload supplementary committee document (PDF)",
-                    type=["pdf"],
-                    key="d2_supp_pdf_uploader",
-                    help="PDF text will be extracted and auto-filled into the text area below.",
-                )
-
-                if _d2_pdf_upload is not None:
-                    _new_d2_fname = _d2_pdf_upload.name
-                    if _new_d2_fname != st.session_state.get("d2_supp_pdf_filename", ""):
-                        # New PDF — extract text and auto-populate text area
-                        _d2_raw = _d2_pdf_upload.read()
-                        _d2_fsize = len(_d2_raw)
-                        try:
-                            _d2_extracted = (
-                                extract_text_pymupdf(_d2_raw)
-                                if use_pymupdf
-                                else extract_text_pdfplumber(_d2_raw)
-                            )
-                        except Exception as _exc:
-                            st.error(f"Supplementary PDF extraction failed: {_exc}")
-                            _d2_extracted = ""
-                        st.session_state["d2_supp_pdf_filename"] = _new_d2_fname
-                        st.session_state["d2_supp_pdf_text"]     = _d2_extracted
-                        st.session_state["d2_supp_pdf_size"]     = _d2_fsize
-                        # Auto-populate text area only when this new PDF is first loaded
-                        st.session_state["d2_supplementary"] = _d2_extracted
-
-                # ── Quality warning + preview for uploaded PDF ────────────────
-                _d2_pdf_stored = st.session_state.get("d2_supp_pdf_text", "")
-                _d2_pdf_fsize  = st.session_state.get("d2_supp_pdf_size", 0)
-                if _d2_pdf_stored and _d2_pdf_fsize:
-                    _d2_cy = character_yield(_d2_pdf_stored, _d2_pdf_fsize)
-                    if _d2_cy < 0.1:
-                        st.markdown(
-                            f'<div class="box-warn">⚠️ Low character yield ({_d2_cy:.3f}) for '
-                            "supplementary PDF — document may be scanned or image-based. "
-                            "Consider using an OCR-processed version.</div>",
-                            unsafe_allow_html=True,
-                        )
-                    with st.expander(
-                        f"Preview extracted supplementary PDF text "
-                        f"(first 1 000 chars · yield {_d2_cy:.3f})",
-                        expanded=False,
-                    ):
-                        st.text(_d2_pdf_stored[:1000])
-
-                # ── Editable text area ────────────────────────────────────────
-                st.text_area(
-                    "Supplementary committee membership information",
-                    key="d2_supplementary",
-                    placeholder="e.g. paste a committee list from the guideline organisation's website",
-                    height=150, label_visibility="collapsed",
-                )
-
-            _d2_supp = st.session_state.get("d2_supplementary", "").strip()
-            if _d2_supp and api_key and st.session_state.extracted_text:
-                if st.button("🔄 Re-assess Domain 2 with supplementary document", key="rerun_d2"):
-                    with st.spinner("Re-assessing Domain 2…"):
-                        try:
-                            _raw_d2 = call_claude(
-                                api_key, D2_ONLY_SYSTEM_PROMPT,
-                                D2_ONLY_USER_PROMPT.format(
-                                    text=st.session_state.extracted_text,
-                                    supplementary=_d2_supp,
-                                ),
-                                max_tokens=1000,
-                            )
-                            _d2_data = parse_json_response(_raw_d2)
-                            if st.session_state.agree_ii_data is None:
-                                st.session_state.agree_ii_data = {}
-                            st.session_state.agree_ii_data.update(_d2_data)
-                            st.success("Domain 2 re-assessed with supplementary document.")
-                            st.rerun()
-                        except Exception as _exc:
-                            st.error(f"Domain 2 re-assessment failed: {_exc}")
-
         for col_name, item_text, rationale_col in domain["items"]:
             st.markdown(f"*{item_text}*")
             ai_col, ai_rat = st.columns([1, 3])
@@ -1673,9 +1553,6 @@ if st.session_state.parsed_data:
             row[domain["score_col"]] = agree_edits.get(domain["score_col"], "")
         row["AGREEII_Overall_Quality_Rating"] = agree_edits.get("AGREEII_Overall_Quality_Rating", "")
         row["AGREEII_Recommendation"]         = agree_edits.get("AGREEII_Recommendation", "")
-
-        # Domain 2 supplementary document flag (captured at top of results block, before this function)
-        row["D2_Supplementary_Document_Used"] = _d2_supplementary_used
 
         # Fix 4: reviewer sign-off metadata
         row["Reviewer_Signoff_Complete"] = _all_signed
