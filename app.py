@@ -269,7 +269,7 @@ DOMAIN 2 — STAKEHOLDER INVOLVEMENT
 ════════════════════════════════════════════════════
 
 Item 4 (D2_RelevantProfessionals_Included) — The guideline development group includes individuals from all relevant professional groups.
-Criteria: (1) name provided for each member; (2) discipline or content expertise provided; (3) institution — professional society affiliation (e.g., AAOS, APTA) FULLY satisfies this; employing hospital is NOT additionally required; (4) geographical location provided; (5) role in development — chair, co-chair, or voting/non-voting designations satisfy this; per-member task descriptions are NOT required. Additional: methodology expert present (statistician, librarian, or systematic review expert).
+Criteria: (1) name provided for each member; (2) discipline or content expertise provided; (3) institution — professional society affiliation (e.g., AAOS, APTA) FULLY satisfies this; employing hospital is NOT additionally required; (4) geographical location — must be explicitly provided per individual member or per their employing institution; the headquarters location of the professional society they represent does NOT satisfy this criterion; implicit geographic inference does NOT satisfy this; NOT MET if individual or institutional locations are not stated; (5) role in development — chair, co-chair, or voting/non-voting designations satisfy this; per-member task descriptions are NOT required. Additional: methodology expert present (statistician, librarian, or systematic review expert).
 Where to look: introduction, acknowledgements, methods, panel member list.
 
 Item 5 (D2_TargetPopViews_Sought) — The views and preferences of the target population have been sought.
@@ -310,7 +310,7 @@ Criteria: (1) guideline describes how development group linked evidence to recom
 Where to look: recommendations, key evidence sections, appendices.
 
 Item 13 (D3_ExternalReview_Conducted) — The guideline has been externally reviewed by experts prior to its publication.
-Criteria: (1) purpose and intent of external review described — any statement of the reason for review satisfies this; (2) methods used described — description of review period and comment format satisfies this, even if brief; (3) description of external reviewers — requires names or credentials of specific reviewers; general type description alone does NOT meet this; (4) outcomes gathered — FULLY MET if outcomes referenced in a named document even if not reproduced; (5) how information was used — a statement that the draft was modified in response to review partially satisfies this.
+Criteria: (1) purpose and intent of external review described — any statement of the reason for review satisfies this; (2) methods used described — description of review period and comment format satisfies this, even if brief; (3) description of external reviewers — PARTIALLY MET if the professional bodies or committees from which reviewers are drawn are named (e.g., Board of Directors, specialty societies) but individual names, professions, or credentials are not provided; NOT MET only if no information whatsoever is given about who the reviewers are; FULLY MET only if individual reviewer names or professional credentials are provided; (4) outcomes gathered — FULLY MET if outcomes referenced in a named document even if not reproduced; apply Rule A; (5) how information was used — a statement that the draft was modified in response to review partially satisfies this.
 Where to look: methods, results, acknowledgements, peer review sections.
 
 Item 14 (D3_UpdateProcedure_Provided) — A procedure for updating the guideline is provided.
@@ -344,7 +344,7 @@ NOTE: Dissemination plans (webinars, CME channels) describe distribution, NOT im
 Where to look: dissemination/implementation, quality indicators, barriers sections.
 
 Item 19 (D5_ApplicationTools_Provided) — The guideline provides advice and/or tools on how the recommendations can be put into practice.
-Criteria: (1) implementation section present — a dissemination plans section is partially met at most; fully met requires guidance on how to implement recommendations, not just distribute them; (2) tools and resources present — a website URL or app reference alone is NOT MET for this criterion; actual clinical tools (checklists, algorithms, decision aids, how-to manuals) must be present in the document or a referenced appendix for this criterion to reach minimally met or above; (3) directions on how to access tools — a URL or app store reference satisfies this.
+Criteria: (1) implementation section present — a dissemination plans section is partially met at most; fully met requires guidance on how to implement recommendations, not just distribute them; (2) tools and resources present — a website URL or app reference alone is NOT MET for this criterion; actual clinical tools (checklists, algorithms, decision aids, how-to manuals) must be present in the document or a referenced appendix for this criterion to reach minimally met or above; (3) directions on how to access tools — a bare website URL or app store reference without contextual guidance on what the tool contains or how to use it for this specific guideline is PARTIALLY MET; fully or mostly met requires more substantive directions or a description of tool content.
 Where to look: implementation, tools, resources, appendices sections.
 
 Item 20 (D5_ResourceImplications_Considered) — The potential resource implications of applying the recommendations have been considered.
@@ -361,7 +361,7 @@ DOMAIN 6 — EDITORIAL INDEPENDENCE
 ════════════════════════════════════════════════════
 
 Item 22 (D6_FundingBody_NoInfluence) — The views of the funding body have not influenced the content of the guideline.
-Criteria: (1) name of funding body provided; (2) explicit statement that views or interests of the funding body have not influenced the final recommendations — a statement excluding external commercial funding satisfies this even if the developing organisation is also the funder; structural independence (e.g., independent physician volunteer panel, multi-committee approval) also contributes to this criterion.
+Criteria: (1) name of funding body provided; (2) explicit statement that views or interests of the funding body have not influenced the final recommendations — FULLY MET only if there is an explicit statement that the funding body did not influence the recommendations; MOSTLY MET if the statement only excludes external commercial funding but the developing organisation is also the funder (i.e., the statement addresses commercial influence but does not explicitly address the developing organisation's own potential influence); structural independence (e.g., independent physician volunteer panel, multi-committee approval) contributes to this criterion but does not alone satisfy it.
 Where to look: preface, methods, acknowledgements, funding sections.
 
 Item 23 (D6_CompetingInterests_Recorded) — Competing interests of members of the guideline development group have been recorded and addressed.
