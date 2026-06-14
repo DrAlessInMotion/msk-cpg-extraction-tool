@@ -134,9 +134,8 @@ OUTPUT SCHEMA
 ═══════════════════════════════════════════════════════
 TIER 2 — SEX/GENDER TERM COUNTING (sg_total_mentions)
 ═══════════════════════════════════════════════════════
-Count total occurrences of: sex, gender, male, female, intersex, man, men, woman, women, trans,
-non-binary, nonbinary, genderfluid, genderdiverse, agender, pregnan*, fertil*, menopaus* and their
-inflected forms (males, females, transgender, etc.).
+Count total occurrences of ONLY these terms: sex, gender, male, female, intersex, man, men, woman, women, trans, non-binary, nonbinary, genderfluid, genderdiverse, agender, pregnan*, fertil*, menopaus* and their inflected forms (males, females, transgender, etc.).
+STRICT EXCLUSION — do NOT count and do NOT include in sg_total_mentions: he, she, his, her, him, himself, herself, "he or she", "his or her", "his/her", "he/she". These are grammatical pronouns, not sex or gender terms. If the only sex/gender-related content is pronoun usage of this kind, set sg_total_mentions = 0 and mention_of_sex_or_gender = "Neither".
 sg_example_context: 1–3 sentences on main contexts terms appear; "NA" if none found.
 
 TIER 2 EVIDENCE RULES (applies to all six *_evidence fields):
@@ -209,40 +208,77 @@ MANDATORY BOUNDARY CONDITIONS
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
 AGREE_II_SYSTEM_PROMPT = """\
-You are assessing this clinical practice guideline using the AGREE II instrument. For each of the 23 items, assign a score from 1 to 7 using the criteria below. Your score must reflect how many of the listed criteria are met: score 1 if no relevant information is present; score 7 if all criteria are fully met; assign intermediate scores proportionally. For each item, your rationale must explicitly state which criteria were met, which were not met or not found, and cite the specific text or section that informed your judgment. If information is absent, state explicitly what was missing.
+You are assessing this clinical practice guideline using the AGREE II instrument.
+For each of the 23 items, assess every individual criterion using the five-point
+continuum below. Do NOT assign a numeric score — Python calculates scores from
+your criterion labels. Your only job is accurate criterion-level assessment.
 
 Return ONLY a single valid JSON object. No preamble, no explanation, no markdown fences.
+
+════════════════════════════════════════════════════
+MANDATORY ASSESSMENT RULES
+════════════════════════════════════════════════════
+
+RULE A — APPENDIX RULE:
+If the main document explicitly states that information exists and directs the
+reader to a named appendix, supplementary file, or eAppendix, treat that
+criterion as FULLY MET. Do NOT mark a criterion unmet because detail is in an
+appendix rather than the main text. Only treat a criterion as unmet if the main
+document makes no reference to that information being available anywhere.
+
+RULE B — SCOPE-APPROPRIATE APPRAISAL:
+Apply each criterion in the context of what is relevant to this guideline's scope.
+Do not penalise a guideline for omitting details genuinely not applicable to it.
+A guideline covering all adults with a named condition satisfies age and population
+criteria without requiring sex/gender specification if that is not the scope.
+
+RULE C — CRITERION LABELS:
+For each criterion, assign exactly one of these five labels:
+  "Fully met"     — criterion completely and clearly satisfied
+  "Mostly met"    — criterion substantially satisfied with only a minor gap
+  "Partially met" — criterion approximately half satisfied
+  "Minimally met" — criterion barely touched; only a small element present
+  "Not met"       — criterion entirely absent
+
+SEQUENCING for every item:
+  1. Apply Rule A — appendix references count as fully met
+  2. Apply Rule B — exclude criteria genuinely not applicable to this guideline
+  3. Assess each remaining criterion individually using the five labels above
+  4. Write a rationale paragraph explicitly naming each criterion and its label
+     e.g. "Criterion 1 (databases) fully met: ... Criterion 2 (time periods) fully met: ..."
 
 ════════════════════════════════════════════════════
 DOMAIN 1 — SCOPE AND PURPOSE
 ════════════════════════════════════════════════════
 
 Item 1 (D1_Objectives_Described) — The overall objective(s) of the guideline is (are) specifically described.
-Criteria: (1) health intent described (prevention/screening/diagnosis/treatment); (2) expected benefit or outcome specified; (3) target population or society identified.
+Criteria: (1) health intent described (prevention/screening/diagnosis/treatment); (2) expected benefit or outcome specified — any statement of intended improvement satisfies this; quantification is NOT required; (3) target population or society identified.
 Where to look: introduction, scope, purpose, rationale, background, objectives.
+NOTE: Objectives stated across introduction and rationale sections satisfy this item; a dedicated objectives section is NOT required.
 
 Item 2 (D1_HealthQuestions_Described) — The health question(s) covered by the guideline is (are) specifically described.
-Criteria: (1) target population specified; (2) intervention(s) or exposure(s) described; (3) comparisons stated if appropriate; (4) outcome(s) described; (5) health care setting or context described.
+Criteria: (1) target population specified; (2) interventions or exposures described; (3) comparisons stated if appropriate — PICO questions referenced in a named appendix = fully met; comparisons implied within recommendation topics also satisfy this; (4) outcomes described — outcomes mentioned within recommendations satisfy this; a separate a priori list is NOT required; (5) health care setting or context described — a statement that the guideline applies across "many different settings" or to multiple provider types satisfies this; naming specific settings is NOT required.
 Where to look: introduction, scope, purpose, rationale, background, questions.
 
 Item 3 (D1_Population_Described) — The population to whom the guideline is meant to apply is specifically described.
-Criteria: (1) target population, sex/gender, and age range described; (2) clinical condition described if relevant; (3) severity or stage of disease described if relevant; (4) comorbidities described if relevant; (5) excluded populations described if relevant.
-Where to look: introduction, scope, patient population, target population sections.
+Criteria: (1) target population and age range — stating "adults" satisfies the age criterion; sex/gender only required if the guideline has a sex/gender-specific scope restriction; (2) clinical condition described if relevant; (3) severity or stage described if relevant — description within recommendations satisfies this; (4) comorbidities described if relevant — discussed as prognostic factors within recommendations satisfies this; (5) excluded populations — stating one exclusion (e.g., paediatric patients) is fully met if no other exclusions exist.
+Where to look: introduction, scope, patient population sections, individual recommendations.
 
 ════════════════════════════════════════════════════
 DOMAIN 2 — STAKEHOLDER INVOLVEMENT
 ════════════════════════════════════════════════════
 
 Item 4 (D2_RelevantProfessionals_Included) — The guideline development group includes individuals from all relevant professional groups.
-Criteria: For each member the following is provided: (1) name; (2) discipline or content expertise; (3) institution; (4) geographical location; (5) description of role in guideline development. Additional: at least one methodology expert present (e.g., systematic review expert, epidemiologist, statistician).
-Where to look: introduction, acknowledgements, appendices, methods, guideline panel member list.
+Criteria: (1) name provided for each member; (2) discipline or content expertise provided; (3) institution — professional society affiliation (e.g., AAOS, APTA) FULLY satisfies this; employing hospital is NOT additionally required; (4) geographical location provided; (5) role in development — chair, co-chair, or voting/non-voting designations satisfy this; per-member task descriptions are NOT required. Additional: methodology expert present (statistician, librarian, or systematic review expert).
+Where to look: introduction, acknowledgements, methods, panel member list.
 
 Item 5 (D2_TargetPopViews_Sought) — The views and preferences of the target population have been sought.
-Criteria: (1) type of strategy used to capture patient/public views stated; (2) methods by which views were sought described; (3) outcomes or information gathered from patient/public described; (4) description of how information was used to inform guideline development or recommendations.
+Criteria: (1) strategy for capturing patient/public views stated; (2) methods by which views were sought described; (3) outcomes or information gathered from patient/public described; (4) how information was used to inform guideline development described.
+NOTE: Professional body commentary does NOT constitute patient or public involvement.
 Where to look: scope, methods, external review, target population perspectives sections.
 
 Item 6 (D2_TargetUsers_Defined) — The target users of the guideline are clearly defined.
-Criteria: (1) clear description of intended audience; (2) description of how the guideline may be used by its target audience.
+Criteria: (1) clear description of intended audience; (2) description of how the guideline may be used — a general statement of intended use satisfies this; per-user-group differentiation is NOT required.
 Where to look: introduction, target user, intended user sections.
 
 ════════════════════════════════════════════════════
@@ -250,35 +286,35 @@ DOMAIN 3 — RIGOUR OF DEVELOPMENT
 ════════════════════════════════════════════════════
 
 Item 7 (D3_SystematicSearch_Used) — Systematic methods were used to search for evidence.
-Criteria: (1) named electronic database(s) or evidence source(s); (2) time periods searched; (3) search terms used; (4) full search strategy included.
+Criteria: (1) named electronic database(s) or evidence source(s); (2) time periods searched; (3) search terms used — FULLY MET if referenced to a named appendix; (4) full search strategy included — FULLY MET if referenced to a named appendix.
 Where to look: methods, literature search strategy, appendices.
 
 Item 8 (D3_SelectionCriteria_Described) — The criteria for selecting the evidence are clearly described.
-Criteria: (1) inclusion criteria described including target population, study design, comparisons, outcomes, language, context; (2) exclusion criteria described.
-Where to look: methods, literature search, inclusion/exclusion criteria, appendices.
+Criteria: (1) inclusion criteria — FULLY MET if "a priori inclusion criteria" referenced to a named appendix, or if a high-level description of the inclusion approach appears in the main text; (2) exclusion criteria — FULLY MET if excluded articles referenced to a named appendix or if exclusion reasons appear anywhere in the main text or attrition flowchart.
+Where to look: methods, literature search, inclusion/exclusion criteria, attrition flowchart, appendices.
 
 Item 9 (D3_EvidenceStrengthsLimits_Described) — The strengths and limitations of the body of evidence are clearly described.
-Criteria: (1) descriptions of how evidence was evaluated for bias; (2) how evidence was interpreted by the development group; (3) aspects addressed include study design, methodology limitations, consistency of results, direction of results, magnitude of benefit versus harm, applicability.
-Where to look: methods, results, discussion, evidence tables.
+Criteria: (1) evidence evaluated for bias — a structured quality rating system (High/Moderate/Low applied consistently) satisfies this; naming the specific tool is NOT required; (2) how evidence was interpreted — rationale sections within recommendations satisfy this; (3) aspects addressed: study design, consistency, direction, magnitude, applicability — coverage distributed across recommendation rationale sections satisfies this.
+Where to look: methods, results, discussion, evidence tables, individual recommendation rationale sections.
 
 Item 10 (D3_FormulationMethods_Described) — The methods for formulating the recommendations are clearly described.
-Criteria: (1) description of the recommendation development process; (2) outcomes of the process; (3) description of how the process influenced the recommendations.
+Criteria: (1) description of the recommendation development process — meetings, literature review, evidence synthesis, voting satisfies this; (2) outcomes of the process — resulting recommendations and strength ratings satisfy this; (3) how the process influenced recommendations — explicit mapping between evidence quality and recommendation strength satisfies this; a named framework is NOT required; noting when recommendations were downgraded satisfies this.
 Where to look: methods, guideline development process sections.
 
 Item 11 (D3_BenefitsRisks_Considered) — The health benefits, side effects, and risks have been considered in formulating the recommendations.
-Criteria: (1) supporting data and report of benefits; (2) supporting data and report of harms/side effects/risks; (3) reporting of balance between benefits and harms; (4) recommendations reflect considerations of both.
-Where to look: methods, interpretation, discussion, recommendations.
+Criteria: (1) supporting data and report of benefits; (2) supporting data and report of harms — FULLY MET if a dedicated harms subsection is structurally present for each recommendation; brief or null entries do NOT make this unmet if the section exists throughout; (3) balance between benefits and harms reported — met if discussed for recommendations where clinically relevant; not every recommendation requires explicit tradeoff discussion; (4) recommendations reflect considerations of both — met if the majority reference both benefit and harm evidence.
+Where to look: methods, interpretation, discussion, recommendations, risks and harms subsections.
 
 Item 12 (D3_Link_EvidenceToRecs) — There is an explicit link between the recommendations and the supporting evidence.
-Criteria: (1) guideline describes how development group linked evidence to recommendations; (2) each recommendation linked to evidence description or reference list; (3) recommendations linked to evidence summaries or tables.
-Where to look: recommendations, key evidence sections.
+Criteria: (1) guideline describes how development group linked evidence to recommendations; (2) each recommendation linked to evidence — named study citations within rationale sections satisfy this; (3) recommendations linked to evidence summaries or tables — FULLY MET if narrative summaries present in rationale sections OR evidence tables referenced in a named appendix.
+Where to look: recommendations, key evidence sections, appendices.
 
 Item 13 (D3_ExternalReview_Conducted) — The guideline has been externally reviewed by experts prior to its publication.
-Criteria: (1) purpose and intent of external review described; (2) methods used described; (3) description of external reviewers; (4) outcomes gathered from external review described; (5) description of how information was used to inform guideline development.
-Where to look: methods, results, acknowledgements.
+Criteria: (1) purpose and intent of external review described — any statement of the reason for review satisfies this; (2) methods used described — description of review period and comment format satisfies this, even if brief; (3) description of external reviewers — requires names or credentials of specific reviewers; general type description alone does NOT meet this; (4) outcomes gathered — FULLY MET if outcomes referenced in a named document even if not reproduced; (5) how information was used — a statement that the draft was modified in response to review partially satisfies this.
+Where to look: methods, results, acknowledgements, peer review sections.
 
 Item 14 (D3_UpdateProcedure_Provided) — A procedure for updating the guideline is provided.
-Criteria: (1) statement that guideline will be updated; (2) explicit time interval or criteria for triggering update; (3) methodology for updating procedure reported.
+Criteria: (1) statement that guideline will be updated; (2) explicit time interval or triggering criteria — a stated time interval (e.g., five years) satisfies this; named triggers also satisfy this; (3) methodology for updating — stating triggers and/or time interval IS the methodology; detailed procedural description is NOT required.
 Where to look: introduction, methods, guideline update, closing sections.
 
 ════════════════════════════════════════════════════
@@ -286,15 +322,16 @@ DOMAIN 4 — CLARITY OF PRESENTATION
 ════════════════════════════════════════════════════
 
 Item 15 (D4_Recs_Specific_Unambiguous) — The recommendations are specific and unambiguous.
-Criteria: (1) statement of the recommended action; (2) identification of intent or purpose of the action; (3) identification of the relevant population; (4) caveats or qualifying statements if relevant.
+Criteria: (1) statement of the recommended action — evidence summary framing is acceptable if the clinical implication is clear; (2) identification of intent or purpose; (3) identification of the relevant population — met if specified in the majority of recommendations; (4) caveats or qualifying statements if relevant — met if present where clinically warranted. Consensus statements acknowledging insufficient evidence are NOT a failure of this item.
 Where to look: recommendations, executive summary sections.
 
 Item 16 (D4_ManagementOptions_Presented) — The different options for management of the condition or health issue are clearly presented.
-Criteria: (1) description of options; (2) description of population or clinical situation most appropriate to each option. Note: more relevant to broad-scope guidelines covering management of a condition.
+Criteria: (1) description of options; (2) description of population or clinical situation most appropriate to each option.
+NOTE: Absence of a flowchart does NOT reduce the score where both criteria are substantively met.
 Where to look: executive summary, recommendations, discussion, treatment options sections.
 
 Item 17 (D4_KeyRecs_Identifiable) — Key recommendations are easily identifiable.
-Criteria: (1) key recommendations presented in a summarised box, bold, underlined, or as flow charts/algorithms; (2) specific recommendations grouped together in one section.
+Criteria: (1) key recommendations presented in summarised box, bold, underlined, or as flow charts/algorithms — bold text in a dedicated summary section satisfies this; a flowchart is one option among several, NOT a requirement; (2) specific recommendations grouped together in one section.
 Where to look: executive summary, conclusions, recommendations sections.
 
 ════════════════════════════════════════════════════
@@ -302,19 +339,21 @@ DOMAIN 5 — APPLICABILITY
 ════════════════════════════════════════════════════
 
 Item 18 (D5_BarriersFacilitators_Described) — The guideline describes facilitators and barriers to its application.
-Criteria: (1) identification of types of facilitators and barriers considered; (2) methods by which information on facilitators/barriers was sought; (3) information or description of facilitators/barriers that emerged; (4) description of how this influenced guideline development or recommendations.
+Criteria: (1) identification of types of facilitators and barriers considered; (2) methods by which information on facilitators/barriers was sought; (3) information or description of facilitators/barriers that emerged; (4) how this influenced guideline development or recommendations.
+NOTE: Dissemination plans (webinars, CME channels) describe distribution, NOT implementation barriers — they do NOT satisfy these criteria.
 Where to look: dissemination/implementation, quality indicators, barriers sections.
 
 Item 19 (D5_ApplicationTools_Provided) — The guideline provides advice and/or tools on how the recommendations can be put into practice.
-Criteria: (1) implementation section present; (2) tools and resources present (summary documents, checklists, algorithms, how-to manuals, pilot test outcomes); (3) directions on how to access tools and resources.
+Criteria: (1) implementation section present — a dissemination plans section is partially met at most; fully met requires guidance on how to implement recommendations, not just distribute them; (2) tools and resources present — a website URL or app reference alone is NOT MET for this criterion; actual clinical tools (checklists, algorithms, decision aids, how-to manuals) must be present in the document or a referenced appendix for this criterion to reach minimally met or above; (3) directions on how to access tools — a URL or app store reference satisfies this.
 Where to look: implementation, tools, resources, appendices sections.
 
 Item 20 (D5_ResourceImplications_Considered) — The potential resource implications of applying the recommendations have been considered.
-Criteria: (1) types of cost information considered identified; (2) methods by which cost information was sought described; (3) cost findings described; (4) description of how cost information was used to inform guideline development.
+Criteria: (1) types of cost information considered identified; (2) methods by which cost information was sought described; (3) cost findings described; (4) how cost information was used to inform guideline development.
 Where to look: methods, cost utility, cost effectiveness, budget implications sections.
 
 Item 21 (D5_MonitoringCriteria_Presented) — The guideline presents monitoring and/or auditing criteria.
 Criteria: (1) monitoring or auditing criteria provided; (2) criteria clearly derived from key recommendations; (3) type of measure specified (process, behavioural, clinical, or outcome).
+NOTE: Future research suggestions are NOT equivalent to monitoring criteria.
 Where to look: recommendations, quality indicators, monitoring, audit sections.
 
 ════════════════════════════════════════════════════
@@ -322,64 +361,41 @@ DOMAIN 6 — EDITORIAL INDEPENDENCE
 ════════════════════════════════════════════════════
 
 Item 22 (D6_FundingBody_NoInfluence) — The views of the funding body have not influenced the content of the guideline.
-Criteria: (1) name of funding body provided; (2) explicit statement that views or interests of the funding body have not influenced the final recommendations.
+Criteria: (1) name of funding body provided; (2) explicit statement that views or interests of the funding body have not influenced the final recommendations — a statement excluding external commercial funding satisfies this even if the developing organisation is also the funder; structural independence (e.g., independent physician volunteer panel, multi-committee approval) also contributes to this criterion.
 Where to look: preface, methods, acknowledgements, funding sections.
 
 Item 23 (D6_CompetingInterests_Recorded) — Competing interests of members of the guideline development group have been recorded and addressed.
-Criteria: (1) statement that interests of development group members have been sought; (2) types of interests sought described; (3) methods by which interests were sought and recorded described; (4) description of how interests identified were addressed.
+Criteria: (1) statement that interests were sought; (2) types of interests sought described; (3) methods by which interests were sought and recorded described; (4) how interests identified were addressed — disclosure and reporting of individual conflicts satisfies this; explicit recusal procedures are NOT required for this criterion to be met or mostly met.
 Where to look: preface, methods, acknowledgements, appendices, conflict of interest sections.
 
 ════════════════════════════════════════════════════
-OUTPUT SCHEMA (use these exact key names; rating fields must be integers 1-7):
+OUTPUT SCHEMA — criterion labels only, NO numeric scores:
 ════════════════════════════════════════════════════
 {
-  "D1_Objectives_Described":              <integer 1-7>,
-  "D1_Objectives_Rationale":              "<rationale: which criteria met/unmet + cited text>",
-  "D1_HealthQuestions_Described":         <integer 1-7>,
-  "D1_HealthQuestions_Rationale":         "<rationale: which criteria met/unmet + cited text>",
-  "D1_Population_Described":              <integer 1-7>,
-  "D1_Population_Rationale":              "<rationale: which criteria met/unmet + cited text>",
-  "D2_RelevantProfessionals_Included":    <integer 1-7>,
-  "D2_RelevantProfessionals_Rationale":   "<rationale: which criteria met/unmet + cited text>",
-  "D2_TargetPopViews_Sought":             <integer 1-7>,
-  "D2_TargetPopViews_Rationale":          "<rationale: which criteria met/unmet + cited text>",
-  "D2_TargetUsers_Defined":               <integer 1-7>,
-  "D2_TargetUsers_Rationale":             "<rationale: which criteria met/unmet + cited text>",
-  "D3_SystematicSearch_Used":             <integer 1-7>,
-  "D3_SystematicSearch_Rationale":        "<rationale: which criteria met/unmet + cited text>",
-  "D3_SelectionCriteria_Described":       <integer 1-7>,
-  "D3_SelectionCriteria_Rationale":       "<rationale: which criteria met/unmet + cited text>",
-  "D3_EvidenceStrengthsLimits_Described": <integer 1-7>,
-  "D3_EvidenceStrengthsLimits_Rationale": "<rationale: which criteria met/unmet + cited text>",
-  "D3_FormulationMethods_Described":      <integer 1-7>,
-  "D3_FormulationMethods_Rationale":      "<rationale: which criteria met/unmet + cited text>",
-  "D3_BenefitsRisks_Considered":          <integer 1-7>,
-  "D3_BenefitsRisks_Rationale":           "<rationale: which criteria met/unmet + cited text>",
-  "D3_Link_EvidenceToRecs":               <integer 1-7>,
-  "D3_Link_Rationale":                    "<rationale: which criteria met/unmet + cited text>",
-  "D3_ExternalReview_Conducted":          <integer 1-7>,
-  "D3_ExternalReview_Rationale":          "<rationale: which criteria met/unmet + cited text>",
-  "D3_UpdateProcedure_Provided":          <integer 1-7>,
-  "D3_UpdateProcedure_Rationale":         "<rationale: which criteria met/unmet + cited text>",
-  "D4_Recs_Specific_Unambiguous":         <integer 1-7>,
-  "D4_Recs_Specific_Rationale":           "<rationale: which criteria met/unmet + cited text>",
-  "D4_ManagementOptions_Presented":       <integer 1-7>,
-  "D4_ManagementOptions_Rationale":       "<rationale: which criteria met/unmet + cited text>",
-  "D4_KeyRecs_Identifiable":              <integer 1-7>,
-  "D4_KeyRecs_Rationale":                 "<rationale: which criteria met/unmet + cited text>",
-  "D5_BarriersFacilitators_Described":    <integer 1-7>,
-  "D5_BarriersFacilitators_Rationale":    "<rationale: which criteria met/unmet + cited text>",
-  "D5_ApplicationTools_Provided":         <integer 1-7>,
-  "D5_ApplicationTools_Rationale":        "<rationale: which criteria met/unmet + cited text>",
-  "D5_ResourceImplications_Considered":   <integer 1-7>,
-  "D5_ResourceImplications_Rationale":    "<rationale: which criteria met/unmet + cited text>",
-  "D5_MonitoringCriteria_Presented":      <integer 1-7>,
-  "D5_MonitoringCriteria_Rationale":      "<rationale: which criteria met/unmet + cited text>",
-  "D6_FundingBody_NoInfluence":           <integer 1-7>,
-  "D6_FundingBody_Rationale":             "<rationale: which criteria met/unmet + cited text>",
-  "D6_CompetingInterests_Recorded":       <integer 1-7>,
-  "D6_CompetingInterests_Rationale":      "<rationale: which criteria met/unmet + cited text>",
-  "AGREEII_Recommendation":              "<2-4 sentence narrative recommendation based on domain scores>"
+  "D1_Objectives_Described":               {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph naming each criterion and its label>"},
+  "D1_HealthQuestions_Described":          {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D1_Population_Described":               {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D2_RelevantProfessionals_Included":     {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D2_TargetPopViews_Sought":              {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D2_TargetUsers_Defined":                {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D3_SystematicSearch_Used":              {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D3_SelectionCriteria_Described":        {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D3_EvidenceStrengthsLimits_Described":  {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D3_FormulationMethods_Described":       {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D3_BenefitsRisks_Considered":           {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D3_Link_EvidenceToRecs":                {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D3_ExternalReview_Conducted":           {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D3_UpdateProcedure_Provided":           {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D4_Recs_Specific_Unambiguous":          {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D4_ManagementOptions_Presented":        {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D4_KeyRecs_Identifiable":               {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D5_BarriersFacilitators_Described":     {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D5_ApplicationTools_Provided":          {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D5_ResourceImplications_Considered":    {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D5_MonitoringCriteria_Presented":       {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D6_FundingBody_NoInfluence":            {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D6_CompetingInterests_Recorded":        {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "AGREEII_Recommendation":               "<2-4 sentence narrative summary>"
 }\
 """
 
@@ -608,9 +624,48 @@ def extract_text_pdfplumber(pdf_bytes: bytes) -> str:
 def character_yield(text: str, file_bytes: int) -> float:
     return len(text) / file_bytes if file_bytes else 0.0
 
+
 # ══════════════════════════════════════════════════════════════════════════════
-# CLAUDE API HELPERS
+# DETERMINISTIC S/G TERM COUNTER
+# Counts occurrences of permitted sex/gender terms only.
+# Gendered pronouns (he, she, his, her, him, himself, herself) and pronoun
+# phrases (he or she, his/her, etc.) are explicitly excluded regardless of
+# what the LLM returns. This function overrides the LLM's sg_total_mentions.
 # ══════════════════════════════════════════════════════════════════════════════
+
+import re as _re
+
+# Permitted terms per the parent review protocol search strategy
+_SG_PATTERNS = [
+    r'\bsex\b', r'\bgender\b',
+    r'\bmale[s]?\b', r'\bfemale[s]?\b', r'\bintersex\b',
+    r'\bman\b', r'\bmen\b', r'\bwoman\b', r'\bwomen\b',
+    r'\btrans\b', r'\btransgender\b', r'\btranssexual\b',
+    r'\bnon-binary\b', r'\bnonbinary\b',
+    r'\bgenderfluid\b', r'\bgender-fluid\b',
+    r'\bgenderdiverse\b', r'\bgender-diverse\b',
+    r'\bagender\b',
+    r'\bpregnan\w*\b', r'\bfertil\w*\b', r'\bmenopaus\w*\b',
+]
+
+# Pronoun phrases to strip BEFORE counting so they cannot match permitted terms
+# (e.g. "he or she" contains no permitted terms but "she" alone would match
+#  if we searched naively — we strip the phrase first)
+_PRONOUN_STRIP = _re.compile(
+    r'\b(he\s+or\s+she|she\s+or\s+he|his\s+or\s+her|her\s+or\s+his'
+    r'|his/her|her/his|he/she|she/he'
+    r'|himself|herself|him|his|her|she|he)\b',
+    _re.IGNORECASE
+)
+
+_SG_COMPILED = [_re.compile(p, _re.IGNORECASE) for p in _SG_PATTERNS]
+
+
+def count_sg_terms(text: str) -> int:
+    """Return deterministic count of permitted S/G terms, excluding pronouns."""
+    # Remove pronoun phrases first so they cannot contribute to the count
+    scrubbed = _PRONOUN_STRIP.sub(" ", text)
+    return sum(len(p.findall(scrubbed)) for p in _SG_COMPILED)
 
 def call_claude(api_key: str, system: str, user_text: str, max_tokens: int = 8192) -> str:
     client = anthropic.Anthropic(api_key=api_key)
@@ -632,9 +687,120 @@ def parse_json_response(raw: str) -> dict:
             cleaned = cleaned[4:]
     return json.loads(cleaned.strip())
 
+
 # ══════════════════════════════════════════════════════════════════════════════
-# GENDER API HELPERS — Fix 1: correct endpoint (api.genderapi.io)
+# AGREE II CRITERION-TO-SCORE AGGREGATOR
+# Converts criterion-level labels from the LLM into numeric item scores using
+# a deterministic stepped mapping. The LLM never produces numeric scores —
+# this function calculates them from criterion labels only.
+# Thresholds calibrated empirically against PD-04 (AAOS Rotator Cuff 2019).
 # ══════════════════════════════════════════════════════════════════════════════
+
+_LABEL_WEIGHTS = {
+    "fully met":     1.00,
+    "mostly met":    0.75,
+    "partially met": 0.50,
+    "minimally met": 0.25,
+    "not met":       0.00,
+}
+
+# Criterion keys for each AGREE II item — must match output schema exactly
+_AGREE_CRITERIA_KEYS: dict[str, list[str]] = {
+    "D1_Objectives_Described":               ["c1", "c2", "c3"],
+    "D1_HealthQuestions_Described":          ["c1", "c2", "c3", "c4", "c5"],
+    "D1_Population_Described":               ["c1", "c2", "c3", "c4", "c5"],
+    "D2_RelevantProfessionals_Included":     ["c1", "c2", "c3", "c4", "c5"],
+    "D2_TargetPopViews_Sought":              ["c1", "c2", "c3", "c4"],
+    "D2_TargetUsers_Defined":                ["c1", "c2"],
+    "D3_SystematicSearch_Used":              ["c1", "c2", "c3", "c4"],
+    "D3_SelectionCriteria_Described":        ["c1", "c2"],
+    "D3_EvidenceStrengthsLimits_Described":  ["c1", "c2", "c3"],
+    "D3_FormulationMethods_Described":       ["c1", "c2", "c3"],
+    "D3_BenefitsRisks_Considered":           ["c1", "c2", "c3", "c4"],
+    "D3_Link_EvidenceToRecs":                ["c1", "c2", "c3"],
+    "D3_ExternalReview_Conducted":           ["c1", "c2", "c3", "c4", "c5"],
+    "D3_UpdateProcedure_Provided":           ["c1", "c2", "c3"],
+    "D4_Recs_Specific_Unambiguous":          ["c1", "c2", "c3", "c4"],
+    "D4_ManagementOptions_Presented":        ["c1", "c2"],
+    "D4_KeyRecs_Identifiable":               ["c1", "c2"],
+    "D5_BarriersFacilitators_Described":     ["c1", "c2", "c3", "c4"],
+    "D5_ApplicationTools_Provided":          ["c1", "c2", "c3"],
+    "D5_ResourceImplications_Considered":    ["c1", "c2", "c3", "c4"],
+    "D5_MonitoringCriteria_Presented":       ["c1", "c2", "c3"],
+    "D6_FundingBody_NoInfluence":            ["c1", "c2"],
+    "D6_CompetingInterests_Recorded":        ["c1", "c2", "c3", "c4"],
+}
+
+def _stepped_score(proportion: float) -> int:
+    """Convert criterion-weight proportion to 1-7 AGREE II score.
+    Thresholds empirically calibrated during PD-04 prompt development.
+    Score 7 requires all criteria fully met (proportion = 1.0 exactly).
+    Any genuine gap, however minor, produces a score of 6 at most."""
+    if proportion >= 1.00: return 7
+    if proportion >= 0.75: return 6
+    if proportion >= 0.55: return 5
+    if proportion >= 0.40: return 4
+    if proportion >= 0.20: return 3
+    if proportion >= 0.10: return 2
+    return 1
+
+
+def score_agree_item(item_key: str, item_data: dict) -> int:
+    """Calculate numeric score for one AGREE II item from criterion labels."""
+    keys = _AGREE_CRITERIA_KEYS.get(item_key, [])
+    if not keys:
+        return 1
+    weights = []
+    for k in keys:
+        raw_label = str(item_data.get(k, "not met")).strip().lower()
+        weights.append(_LABEL_WEIGHTS.get(raw_label, 0.0))
+    proportion = sum(weights) / len(weights) if weights else 0.0
+    return _stepped_score(proportion)
+
+
+def build_agree_scores(raw_agree: dict) -> dict:
+    """Convert full AGREE II LLM output to numeric scores + rationales.
+    Returns a flat dict with the same keys the app expects downstream."""
+    # Explicit mapping from item key to its rationale column key
+    _rationale_keys: dict[str, str] = {
+        "D1_Objectives_Described":               "D1_Objectives_Rationale",
+        "D1_HealthQuestions_Described":          "D1_HealthQuestions_Rationale",
+        "D1_Population_Described":               "D1_Population_Rationale",
+        "D2_RelevantProfessionals_Included":     "D2_RelevantProfessionals_Rationale",
+        "D2_TargetPopViews_Sought":              "D2_TargetPopViews_Rationale",
+        "D2_TargetUsers_Defined":                "D2_TargetUsers_Rationale",
+        "D3_SystematicSearch_Used":              "D3_SystematicSearch_Rationale",
+        "D3_SelectionCriteria_Described":        "D3_SelectionCriteria_Rationale",
+        "D3_EvidenceStrengthsLimits_Described":  "D3_EvidenceStrengthsLimits_Rationale",
+        "D3_FormulationMethods_Described":       "D3_FormulationMethods_Rationale",
+        "D3_BenefitsRisks_Considered":           "D3_BenefitsRisks_Rationale",
+        "D3_Link_EvidenceToRecs":                "D3_Link_Rationale",
+        "D3_ExternalReview_Conducted":           "D3_ExternalReview_Rationale",
+        "D3_UpdateProcedure_Provided":           "D3_UpdateProcedure_Rationale",
+        "D4_Recs_Specific_Unambiguous":          "D4_Recs_Specific_Rationale",
+        "D4_ManagementOptions_Presented":        "D4_ManagementOptions_Rationale",
+        "D4_KeyRecs_Identifiable":               "D4_KeyRecs_Rationale",
+        "D5_BarriersFacilitators_Described":     "D5_BarriersFacilitators_Rationale",
+        "D5_ApplicationTools_Provided":          "D5_ApplicationTools_Rationale",
+        "D5_ResourceImplications_Considered":    "D5_ResourceImplications_Rationale",
+        "D5_MonitoringCriteria_Presented":       "D5_MonitoringCriteria_Rationale",
+        "D6_FundingBody_NoInfluence":            "D6_FundingBody_Rationale",
+        "D6_CompetingInterests_Recorded":        "D6_CompetingInterests_Rationale",
+    }
+    result = {}
+    for item_key, crit_keys in _AGREE_CRITERIA_KEYS.items():
+        item_data = raw_agree.get(item_key, {})
+        score = score_agree_item(item_key, item_data)
+        rationale = item_data.get("rationale", "No rationale provided.")
+        # Prepend criterion label summary for transparency in the interface
+        label_summary = " | ".join(
+            f"{k}: {item_data.get(k, 'not met')}" for k in crit_keys
+        )
+        result[item_key] = score
+        rat_key = _rationale_keys.get(item_key, item_key + "_Rationale")
+        result[rat_key] = f"[{label_summary}] {rationale}"
+    result["AGREEII_Recommendation"] = raw_agree.get("AGREEII_Recommendation", "")
+    return result
 
 _TITLES = {"dr", "prof", "mr", "mrs", "ms", "sir", "dame", "lord", "rev",
            "hon", "a/prof", "assoc", "mx", "miss"}
@@ -963,6 +1129,12 @@ if st.session_state.extracted_text:
                 )
                 st.session_state.raw_json = raw
                 st.session_state.parsed_data = parse_json_response(raw)
+                # Override LLM sg_total_mentions with deterministic Python count.
+                # The LLM consistently miscounts by including gendered pronouns;
+                # the Python counter applies the protocol term list precisely.
+                _py_count = count_sg_terms(st.session_state.extracted_text)
+                if "tier2" in st.session_state.parsed_data:
+                    st.session_state.parsed_data["tier2"]["sg_total_mentions"] = _py_count
             except json.JSONDecodeError as exc:
                 st.error(f"Main extraction — Claude returned invalid JSON: {exc}")
                 with st.expander("Raw response"):
@@ -987,7 +1159,10 @@ if st.session_state.extracted_text:
                     max_tokens=6000,
                 )
                 st.session_state.raw_agree_ii_json = raw_ag
-                st.session_state.agree_ii_data = parse_json_response(raw_ag)
+                # Parse criterion labels then convert to numeric scores via
+                # deterministic Python aggregation — LLM never assigns scores.
+                _raw_agree = parse_json_response(raw_ag)
+                st.session_state.agree_ii_data = build_agree_scores(_raw_agree)
             except json.JSONDecodeError as exc:
                 st.warning(f"AGREE II — invalid JSON: {exc}. Main extraction results still available.")
                 st.session_state.agree_ii_data = {}
