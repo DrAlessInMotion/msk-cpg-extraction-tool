@@ -137,7 +137,7 @@ TIER 2 — SEX/GENDER TERM COUNTING (sg_total_mentions)
 ═══════════════════════════════════════════════════════
 Count total occurrences of ONLY these terms: sex, gender, male, female, intersex, man, men, woman, women, trans, non-binary, nonbinary, genderfluid, genderdiverse, agender, pregnan*, fertil*, menopaus* and their inflected forms (males, females, transgender, etc.).
 STRICT EXCLUSION — do NOT count and do NOT include in sg_total_mentions: he, she, his, her, him, himself, herself, "he or she", "his or her", "his/her", "he/she". These are grammatical pronouns, not sex or gender terms. If the only sex/gender-related content is pronoun usage of this kind, set sg_total_mentions = 0 and mention_of_sex_or_gender = "Neither".
-sg_example_context: 1–3 sentences on main contexts terms appear; "NA" if none found.
+sg_example_context: 2–3 sentences describing the most clinically significant contexts in which sex and/or gender terms appear in the guideline's recommendations and clinical guidance (e.g. sex-differentiated treatment recommendations, epidemiological data by sex, sex as a diagnostic or risk factor input). Focus on clinical content, not on counting statistics or reference list distribution. If terms appear only in methodological exclusion criteria or reference titles with no clinical content, note this. "NA" if no terms found.
 
 TIER 2 EVIDENCE RULES (applies to all six *_evidence fields):
 • Provide a verbatim quote from the guideline that directly supports the rating decision.
@@ -1491,19 +1491,44 @@ if st.session_state.extracted_text:
         st.session_state.body_sg_count        = _body_sg
         st.session_state.ref_section_sg_count = _ref_sg
 
+        # Detect unreliable split: body count is less than 5% of total
+        # for documents with more than 20 total mentions. This indicates
+        # split_text_at_references() found a reference heading too early
+        # (e.g. in front matter or a per-chapter reference list),
+        # classifying most of the body as reference section.
+        _split_unreliable = (
+            _total_sg > 20
+            and _body_sg < 0.05 * _total_sg
+        )
+
+        if _split_unreliable:
+            sg_split_note = (
+                f"Note for BC11: The S/G term counting tool has calculated that the "
+                f"document contains {_total_sg} total S/G term matches. The body/"
+                f"reference split could not be reliably determined for this document "
+                f"(it may have per-chapter reference lists or an unusual structure). "
+                f"Report the whole-document total of {_total_sg} only. For the "
+                f"sg_example_context field, describe the main clinical contexts in "
+                f"which sex and gender terms appear in the recommendations and "
+                f"clinical guidance — do NOT describe the counting tool output or "
+                f"the reference section distribution."
+            )
+        else:
+            sg_split_note = (
+                f"Note for BC11: The S/G term counting tool has calculated that the "
+                f"document contains {_total_sg} total S/G term matches, of which an "
+                f"estimated {_ref_sg} appear in the reference list and appendices "
+                f"(from the References heading to end of document), and {_body_sg} "
+                f"appear in the body text."
+            )
+
         with st.spinner("Step 1/2 — Running main extraction (Tiers 1–3 + Overall rating)…"):
             try:
                 raw = call_claude(
                     api_key, SYSTEM_PROMPT,
                     USER_PROMPT_TEMPLATE.format(
                         text=st.session_state.extracted_text,
-                        sg_split_note=(
-                            f"Note for BC11: The S/G term counting tool has calculated that the "
-                            f"document contains {_total_sg} total S/G term matches, of which an "
-                            f"estimated {_ref_sg} appear in the reference list and appendices "
-                            f"(from the References heading to end of document), and {_body_sg} "
-                            f"appear in the body text."
-                        ),
+                        sg_split_note=sg_split_note,
                     ),
                 )
                 st.session_state.raw_json = raw
