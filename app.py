@@ -1480,13 +1480,20 @@ if st.session_state.extracted_text:
 
     # Large document guard: truncate if text exceeds safe API input size
     _MAX_CHARS = 400_000
-    if len(st.session_state.extracted_text) > _MAX_CHARS:
+    _full_text = st.session_state.extracted_text
+    _truncated = False
+
+    if len(_full_text) > _MAX_CHARS:
         st.warning(
-            f"⚠️ This document is very large ({len(st.session_state.extracted_text):,} characters). "
-            f"Text has been truncated to the first {_MAX_CHARS:,} characters for processing. "
+            f"⚠️ This document is very large ({len(_full_text):,} characters). "
+            f"Text sent to the AI has been truncated to the first {_MAX_CHARS:,} characters for processing. "
+            f"The S/G term count reflects the full document. "
             f"Review the output carefully and check that key sections were not cut off."
         )
-        st.session_state.extracted_text = st.session_state.extracted_text[:_MAX_CHARS]
+        _api_text = _full_text[:_MAX_CHARS]
+        _truncated = True
+    else:
+        _api_text = _full_text
 
     if run:
         # Pre-compute S/G split counts before the API call so they can be injected
@@ -1537,7 +1544,7 @@ if st.session_state.extracted_text:
                 raw = call_claude(
                     api_key, SYSTEM_PROMPT,
                     USER_PROMPT_TEMPLATE.format(
-                        text=st.session_state.extracted_text,
+                        text=_api_text,
                         sg_split_note=sg_split_note,
                     ),
                 )
@@ -1590,7 +1597,7 @@ if st.session_state.extracted_text:
                 raw_ag_1 = call_claude(
                     api_key, AGREE_II_SYSTEM_PROMPT,
                     AGREE_II_USER_PROMPT_D1D3.format(
-                        text=st.session_state.extracted_text,
+                        text=_api_text,
                         supplements=build_supp_block(st.session_state.supp_texts or {}),
                     ),
                 )
@@ -1608,7 +1615,7 @@ if st.session_state.extracted_text:
                 raw_ag_2 = call_claude(
                     api_key, AGREE_II_SYSTEM_PROMPT,
                     AGREE_II_USER_PROMPT_D4D6.format(
-                        text=st.session_state.extracted_text,
+                        text=_api_text,
                         supplements=build_supp_block(st.session_state.supp_texts or {}),
                     ),
                 )
