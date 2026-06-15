@@ -1732,7 +1732,6 @@ if st.session_state.parsed_data:
                         _new_gr[_ckey] = []
                 st.session_state.gender_results = _new_gr
             st.session_state.classifying_gender = False
-            st.rerun()
     else:
         st.caption("Enter a Gender API key in the sidebar to enable gender classification.")
 
