@@ -262,7 +262,7 @@ MANDATORY BOUNDARY CONDITIONS
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
 AGREE_II_SYSTEM_PROMPT = """\
-# AGREE II Prompt version: 2.2
+# AGREE II Prompt version: 2.3
 You are assessing this clinical practice guideline using the AGREE II instrument.
 For each of the 23 items, assess every individual criterion using the five-point
 continuum below. Do NOT assign a numeric score — Python calculates scores from
@@ -297,11 +297,23 @@ For each criterion, assign exactly one of these five labels:
   "Minimally met" — criterion barely touched; only a small element present
   "Not met"       — criterion entirely absent
 
+RULE D — SOURCE CITATION RULE:
+When supplementary documents are provided alongside the main guideline text,
+you must assess each criterion using ALL provided documents, not only the main
+guideline. When a criterion is satisfied by information found in a supplementary
+document rather than the main guideline, you MUST state the source in your
+rationale using the format: (Source: [document label as provided]).
+If the main guideline satisfies a criterion, no source citation is needed.
+If both documents contribute, cite the supplementary document for the specific
+element it provides.
+
 SEQUENCING for every item:
-  1. Apply Rule A — appendix references count as fully met
-  2. Apply Rule B — exclude criteria genuinely not applicable to this guideline
-  3. Assess each remaining criterion individually using the five labels above
-  4. Write a rationale paragraph explicitly naming each criterion and its label
+  1. Apply Rule D — identify which document(s) contain relevant information
+  2. Apply Rule A — appendix references count as fully met
+  3. Apply Rule B — exclude criteria genuinely not applicable to this guideline
+  4. Assess each remaining criterion individually using the five labels above
+  5. Write a rationale paragraph explicitly naming each criterion and its label,
+     citing supplementary sources where applicable per Rule D
      e.g. "Criterion 1 (databases) fully met: ... Criterion 2 (time periods) fully met: ..."
 
 ════════════════════════════════════════════════════
@@ -503,9 +515,28 @@ OUTPUT SCHEMA — criterion labels only, NO numeric scores:
 """
 
 
+def build_supp_block(supp_texts: dict) -> str:
+    """Return a formatted supplementary documents block for inclusion in prompts.
+    Returns an empty string if no supplements are provided."""
+    if not supp_texts:
+        return ""
+    parts = ["\n\n════════════════════════════════════════════════════",
+             "SUPPLEMENTARY DOCUMENTS",
+             "The following documents were uploaded by the reviewer alongside the main",
+             "guideline. They are referenced in the guideline and form part of the",
+             "materials appropriate for AGREE II assessment per the AGREE II User's Manual.",
+             "When information from a supplementary document informs your assessment of",
+             "a criterion, you MUST name the source document in your rationale paragraph",
+             "using the format: (Source: [document label]).",
+             "════════════════════════════════════════════════════"]
+    for label, text in supp_texts.items():
+        parts.append(f"\n--- DOCUMENT: {label} ---\n{text}\n--- END: {label} ---")
+    return "\n".join(parts)
+
+
 USER_PROMPT_TEMPLATE = (
     "Extract structured data from the following clinical practice guideline.\n\n"
-    "GUIDELINE TEXT:\n{text}"
+    "GUIDELINE TEXT:\n{text}{supplements}"
 )
 
 AGREE_II_USER_PROMPT_D1D3 = (
@@ -514,7 +545,7 @@ AGREE_II_USER_PROMPT_D1D3 = (
     "Stakeholder Involvement, and Rigour of Development.\n\n"
     "Return a JSON object containing only the keys for these 14 items. "
     "Do not assess Domains 4, 5, or 6.\n\n"
-    "GUIDELINE TEXT:\n{text}"
+    "GUIDELINE TEXT:\n{text}{supplements}"
 )
 
 AGREE_II_USER_PROMPT_D4D6 = (
@@ -524,7 +555,7 @@ AGREE_II_USER_PROMPT_D4D6 = (
     "AGREEII_Recommendation field.\n\n"
     "Return a JSON object containing only the keys for these 9 items plus "
     "AGREEII_Recommendation. Do not assess Domains 1, 2, or 3.\n\n"
-    "GUIDELINE TEXT:\n{text}"
+    "GUIDELINE TEXT:\n{text}{supplements}"
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1077,7 +1108,7 @@ def ev_block(evidence_text: str) -> None:
 
 for _k in ("extracted_text", "file_size", "raw_json", "parsed_data",
            "raw_agree_ii_json", "agree_ii_data",
-           "gender_results", "_last_filename", "signoff_timestamp"):
+           "gender_results", "_last_filename", "signoff_timestamp", "supp_texts"):
     if _k not in st.session_state:
         st.session_state[_k] = None
 
@@ -1198,6 +1229,7 @@ if uploaded:
         st.session_state.agree_ii_data = None
         st.session_state.gender_results = None
         st.session_state.signoff_timestamp = None
+        st.session_state.supp_texts = {}
         st.session_state["_last_filename"] = uploaded.name
         for _k in ("t3b_chair", "t3b_clin", "t3b_lay"):
             st.session_state.pop(_k, None)
@@ -1237,6 +1269,75 @@ if uploaded:
     with st.expander("Preview extracted text (first 2 000 characters)"):
         st.text(text[:2000])
 
+# ── Supplementary documents (optional) ───────────────────────────────────────
+
+st.markdown("#### Supplementary documents (optional)")
+st.markdown(
+    '<div class="box-info">ℹ️ Upload supporting documents referenced in the guideline '
+    "(e.g. committee list, full evidence review, technical report). "
+    "These will be included in the AGREE II assessment per the AGREE II User's Manual. "
+    "Each document must be given a short label — this label will appear in the rationale "
+    "when the model draws on that document.</div>",
+    unsafe_allow_html=True,
+)
+
+supp_texts: dict = st.session_state.supp_texts or {}
+NUM_SUPPS = 3
+for i in range(1, NUM_SUPPS + 1):
+    s_col1, s_col2 = st.columns([2, 3])
+    with s_col1:
+        s_label = st.text_input(
+            f"Label for supplement {i}",
+            placeholder=f"e.g. Committee list",
+            key=f"supp_label_{i}",
+        )
+    with s_col2:
+        s_file = st.file_uploader(
+            f"Supplementary PDF {i}",
+            type=["pdf"],
+            key=f"supp_file_{i}",
+            label_visibility="collapsed",
+        )
+    if s_file and s_label:
+        s_bytes = s_file.read()
+        with st.spinner(f"Extracting text from '{s_label}'…"):
+            try:
+                s_text = (
+                    extract_text_pymupdf(s_bytes)
+                    if use_pymupdf
+                    else extract_text_pdfplumber(s_bytes)
+                )
+                supp_texts[s_label] = s_text
+                s_cy = character_yield(s_text, len(s_bytes))
+                if s_cy < 0.1:
+                    st.markdown(
+                        f'<div class="box-warn">⚠️ Low character yield ({s_cy:.3f}) for '
+                        f'"{s_label}". Document may be scanned.</div>',
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f'<div class="box-ok">✓ "{s_label}" extracted — '
+                        f'{len(s_text):,} characters.</div>',
+                        unsafe_allow_html=True,
+                    )
+            except Exception as exc:
+                st.error(f"Failed to extract '{s_label}': {exc}")
+    elif s_file and not s_label:
+        st.markdown(
+            '<div class="box-warn">⚠️ Please enter a label for this supplement.</div>',
+            unsafe_allow_html=True,
+        )
+
+st.session_state.supp_texts = supp_texts
+
+if supp_texts and st.session_state.parsed_data:
+    st.markdown(
+        '<div class="box-warn">⚠️ Supplementary documents have been added or changed. '
+        "Re-run extraction to include them in the AGREE II assessment.</div>",
+        unsafe_allow_html=True,
+    )
+
 # ── Extract button ────────────────────────────────────────────────────────────
 
 if st.session_state.extracted_text:
@@ -1259,7 +1360,10 @@ if st.session_state.extracted_text:
             try:
                 raw = call_claude(
                     api_key, SYSTEM_PROMPT,
-                    USER_PROMPT_TEMPLATE.format(text=st.session_state.extracted_text),
+                    USER_PROMPT_TEMPLATE.format(
+                        text=st.session_state.extracted_text,
+                        supplements=build_supp_block(st.session_state.supp_texts or {}),
+                    ),
                 )
                 st.session_state.raw_json = raw
                 st.session_state.parsed_data = parse_json_response(raw)
@@ -1289,7 +1393,10 @@ if st.session_state.extracted_text:
             try:
                 raw_ag_1 = call_claude(
                     api_key, AGREE_II_SYSTEM_PROMPT,
-                    AGREE_II_USER_PROMPT_D1D3.format(text=st.session_state.extracted_text),
+                    AGREE_II_USER_PROMPT_D1D3.format(
+                        text=st.session_state.extracted_text,
+                        supplements=build_supp_block(st.session_state.supp_texts or {}),
+                    ),
                 )
             except Exception as exc:
                 st.warning(f"AGREE II Part 1 failed: {exc}. Main extraction results still available.")
@@ -1304,7 +1411,10 @@ if st.session_state.extracted_text:
             try:
                 raw_ag_2 = call_claude(
                     api_key, AGREE_II_SYSTEM_PROMPT,
-                    AGREE_II_USER_PROMPT_D4D6.format(text=st.session_state.extracted_text),
+                    AGREE_II_USER_PROMPT_D4D6.format(
+                        text=st.session_state.extracted_text,
+                        supplements=build_supp_block(st.session_state.supp_texts or {}),
+                    ),
                 )
             except Exception as exc:
                 st.warning(f"AGREE II Part 2 failed: {exc}. Main extraction results still available.")

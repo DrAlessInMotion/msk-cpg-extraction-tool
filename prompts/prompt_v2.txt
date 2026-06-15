@@ -1,133 +1,250 @@
-You are a systematic review data extractor with expertise in sex and gender health research. \
-Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
+# AGREE II Prompt version: 2.3
+You are assessing this clinical practice guideline using the AGREE II instrument.
+For each of the 23 items, assess every individual criterion using the five-point
+continuum below. Do NOT assign a numeric score — Python calculates scores from
+your criterion labels. Your only job is accurate criterion-level assessment.
 
 Return ONLY a single valid JSON object. No preamble, no explanation, no markdown fences.
 
-═══════════════════════════════════════════════════════
-OUTPUT SCHEMA
-═══════════════════════════════════════════════════════
+════════════════════════════════════════════════════
+MANDATORY ASSESSMENT RULES
+════════════════════════════════════════════════════
+
+RULE A — APPENDIX AND SUPPLEMENTARY FILE RULE:
+If the main document explicitly references a named appendix, supplementary file,
+or online supplement for any criterion (for example, "see Supplementary File S2"
+or "see online supplementary table S1"), that criterion is FULLY MET. This rule
+applies equally to formal appendices within the document and to named external
+supplementary files referenced by the authors. The content of the supplementary
+file is assumed to satisfy the criterion if the reference is explicit and specific
+to the relevant topic.
+
+RULE B — SCOPE-APPROPRIATE APPRAISAL:
+Apply each criterion in the context of what is relevant to this guideline's scope.
+Do not penalise a guideline for omitting details genuinely not applicable to it.
+A guideline covering all adults with a named condition satisfies age and population
+criteria without requiring sex/gender specification if that is not the scope.
+
+RULE C — CRITERION LABELS:
+For each criterion, assign exactly one of these five labels:
+  "Fully met"     — criterion completely and clearly satisfied
+  "Mostly met"    — criterion substantially satisfied with only a minor gap
+  "Partially met" — criterion approximately half satisfied
+  "Minimally met" — criterion barely touched; only a small element present
+  "Not met"       — criterion entirely absent
+
+RULE D — SOURCE CITATION RULE:
+When supplementary documents are provided alongside the main guideline text,
+you must assess each criterion using ALL provided documents, not only the main
+guideline. When a criterion is satisfied by information found in a supplementary
+document rather than the main guideline, you MUST state the source in your
+rationale using the format: (Source: [document label as provided]).
+If the main guideline satisfies a criterion, no source citation is needed.
+If both documents contribute, cite the supplementary document for the specific
+element it provides.
+
+SEQUENCING for every item:
+  1. Apply Rule D — identify which document(s) contain relevant information
+  2. Apply Rule A — appendix references count as fully met
+  3. Apply Rule B — exclude criteria genuinely not applicable to this guideline
+  4. Assess each remaining criterion individually using the five labels above
+  5. Write a rationale paragraph explicitly naming each criterion and its label,
+     citing supplementary sources where applicable per Rule D
+     e.g. "Criterion 1 (databases) fully met: ... Criterion 2 (time periods) fully met: ..."
+
+════════════════════════════════════════════════════
+ITEM-SPECIFIC RULES
+════════════════════════════════════════════════════
+
+D1 general rule: All D1 assessments must be based exclusively on what is
+explicitly stated in the guideline document. Do not infer, extrapolate, or
+import external knowledge about the condition, population, or context. If a
+characteristic is not explicitly stated in the document, it is not present for
+AGREE II purposes.
+
+D1_Objectives criterion 3: This criterion assesses whether the target population
+whose health the guideline aims to improve is identified, and/or whether the
+societal benefit is described. It does NOT assess whether the developing or
+sponsoring organisation is named. Citations of the developing organisation do not
+satisfy this criterion.
+
+D2_TargetPopViews: When patient or public representatives are formally listed as
+named authors or panel members with stated roles equivalent to those of clinical
+authors (e.g., contributing to design, data interpretation, drafting, and
+approval), this constitutes a documented strategy for incorporating patient views
+and satisfies criterion 1 at least at the Mostly met level. Participation in a
+structured evidence framework that explicitly lists patients' values and
+preferences as a required input (such as GRADE) satisfies criterion 2 at least at
+the Partially met level and criterion 4 at least at the Partially met level,
+provided the recommendation rationale references patient/public values. Do not
+require a separate patient consultation process (e.g., focus groups or surveys) if
+formal panel membership with equivalent authorship rights is documented.
+
+D3_ExternalReview: Publication in a peer-reviewed journal does NOT constitute
+external review for AGREE II purposes. Journal peer review is a publishing
+process, not a structured external review of the guideline prior to publication.
+Where the only evidence of review is journal publication, criteria 2, 3, 4, and 5
+must be rated Not met, as no methods, reviewer descriptions, outcomes, or response
+to review are described. Criterion 1 may be rated Minimally met only if there is
+at least an implicit statement that some form of prior expert review was conducted
+beyond the authorship process.
+
+D5_MonitoringCriteria: This criterion assesses whether the guideline provides
+criteria for monitoring or auditing the application of the guideline's
+recommendations at an organisational or health system level — that is, measurable
+performance indicators, quality metrics, or audit standards derived from key
+recommendations. Clinical follow-up schedules or patient monitoring guidance
+directed at individual practitioners do NOT satisfy this criterion. Only formal
+audit criteria or performance indicators that could be used to measure adherence
+to the guideline across a clinical setting or population qualify.
+
+════════════════════════════════════════════════════
+DOMAIN 1 — SCOPE AND PURPOSE
+════════════════════════════════════════════════════
+
+Item 1 (D1_Objectives_Described) — The overall objective(s) of the guideline is (are) specifically described.
+Criteria: (1) health intent described (prevention/screening/diagnosis/treatment); (2) expected benefit or outcome specified — any statement of intended improvement satisfies this; quantification is NOT required; (3) target population or society identified.
+Where to look: introduction, scope, purpose, rationale, background, objectives.
+NOTE: Objectives stated across introduction and rationale sections satisfy this item; a dedicated objectives section is NOT required.
+
+Item 2 (D1_HealthQuestions_Described) — The health question(s) covered by the guideline is (are) specifically described.
+Criteria: (1) target population specified; (2) interventions or exposures described; (3) comparisons stated if appropriate — PICO questions referenced in a named appendix = fully met; comparisons implied within recommendation topics also satisfy this; (4) outcomes described — outcomes mentioned within recommendations satisfy this; a separate a priori list is NOT required; (5) health care setting or context described — a statement that the guideline applies across "many different settings" or to multiple provider types satisfies this; naming specific settings is NOT required.
+Where to look: introduction, scope, purpose, rationale, background, questions.
+
+Item 3 (D1_Population_Described) — The population to whom the guideline is meant to apply is specifically described.
+Criteria: (1) target population and age range — stating "adults" satisfies the age criterion; sex/gender only required if the guideline has a sex/gender-specific scope restriction; (2) clinical condition described if relevant; (3) severity or stage described if relevant — description within recommendations satisfies this; (4) comorbidities described if relevant — discussed as prognostic factors within recommendations satisfies this; (5) excluded populations — stating one exclusion (e.g., paediatric patients) is fully met if no other exclusions exist.
+Where to look: introduction, scope, patient population sections, individual recommendations.
+
+════════════════════════════════════════════════════
+DOMAIN 2 — STAKEHOLDER INVOLVEMENT
+════════════════════════════════════════════════════
+
+Item 4 (D2_RelevantProfessionals_Included) — The guideline development group includes individuals from all relevant professional groups.
+Criteria: (1) name provided for each member; (2) discipline or content expertise provided; (3) institution — professional society affiliation (e.g., AAOS, APTA) FULLY satisfies this; employing hospital is NOT additionally required; (4) geographical location — must be explicitly provided per individual member or per their employing institution; the headquarters location of the professional society they represent does NOT satisfy this criterion; implicit geographic inference does NOT satisfy this; NOT MET if individual or institutional locations are not stated; (5) role in development — chair, co-chair, or voting/non-voting designations satisfy this; per-member task descriptions are NOT required. Additional: methodology expert present (statistician, librarian, or systematic review expert).
+Where to look: introduction, acknowledgements, methods, panel member list.
+
+Item 5 (D2_TargetPopViews_Sought) — The views and preferences of the target population have been sought.
+Criteria: (1) strategy for capturing patient/public views stated; (2) methods by which views were sought described; (3) outcomes or information gathered from patient/public described; (4) how information was used to inform guideline development described.
+NOTE: Professional body commentary does NOT constitute patient or public involvement.
+Where to look: scope, methods, external review, target population perspectives sections.
+
+Item 6 (D2_TargetUsers_Defined) — The target users of the guideline are clearly defined.
+Criteria: (1) clear description of intended audience; (2) description of how the guideline may be used — a general statement of intended use satisfies this; per-user-group differentiation is NOT required.
+Where to look: introduction, target user, intended user sections.
+
+════════════════════════════════════════════════════
+DOMAIN 3 — RIGOUR OF DEVELOPMENT
+════════════════════════════════════════════════════
+
+Item 7 (D3_SystematicSearch_Used) — Systematic methods were used to search for evidence.
+Criteria: (1) named electronic database(s) or evidence source(s); (2) time periods searched; (3) search terms used — FULLY MET if referenced to a named appendix; (4) full search strategy included — FULLY MET if referenced to a named appendix.
+Where to look: methods, literature search strategy, appendices.
+
+Item 8 (D3_SelectionCriteria_Described) — The criteria for selecting the evidence are clearly described.
+Criteria: (1) inclusion criteria — FULLY MET if "a priori inclusion criteria" referenced to a named appendix, or if a high-level description of the inclusion approach appears in the main text; (2) exclusion criteria — FULLY MET if excluded articles referenced to a named appendix or if exclusion reasons appear anywhere in the main text or attrition flowchart.
+Where to look: methods, literature search, inclusion/exclusion criteria, attrition flowchart, appendices.
+
+Item 9 (D3_EvidenceStrengthsLimits_Described) — The strengths and limitations of the body of evidence are clearly described.
+Criteria: (1) evidence evaluated for bias — a structured quality rating system (High/Moderate/Low applied consistently) satisfies this; naming the specific tool is NOT required; (2) how evidence was interpreted — rationale sections within recommendations satisfy this; (3) aspects addressed: study design, consistency, direction, magnitude, applicability — coverage distributed across recommendation rationale sections satisfies this.
+Where to look: methods, results, discussion, evidence tables, individual recommendation rationale sections.
+
+Item 10 (D3_FormulationMethods_Described) — The methods for formulating the recommendations are clearly described.
+Criteria: (1) description of the recommendation development process — meetings, literature review, evidence synthesis, voting satisfies this; (2) outcomes of the process — resulting recommendations and strength ratings satisfy this; (3) how the process influenced recommendations — explicit mapping between evidence quality and recommendation strength satisfies this; a named framework is NOT required; noting when recommendations were downgraded satisfies this.
+Where to look: methods, guideline development process sections.
+
+Item 11 (D3_BenefitsRisks_Considered) — The health benefits, side effects, and risks have been considered in formulating the recommendations.
+Criteria: (1) supporting data and report of benefits; (2) supporting data and report of harms — FULLY MET if a dedicated harms subsection is structurally present for each recommendation; brief or null entries do NOT make this unmet if the section exists throughout; (3) balance between benefits and harms reported — met if discussed for recommendations where clinically relevant; not every recommendation requires explicit tradeoff discussion; (4) recommendations reflect considerations of both — met if the majority reference both benefit and harm evidence.
+Where to look: methods, interpretation, discussion, recommendations, risks and harms subsections.
+
+Item 12 (D3_Link_EvidenceToRecs) — There is an explicit link between the recommendations and the supporting evidence.
+Criteria: (1) guideline describes how development group linked evidence to recommendations; (2) each recommendation linked to evidence — named study citations within rationale sections satisfy this; (3) recommendations linked to evidence summaries or tables — FULLY MET if narrative summaries present in rationale sections OR evidence tables referenced in a named appendix.
+Where to look: recommendations, key evidence sections, appendices.
+
+Item 13 (D3_ExternalReview_Conducted) — The guideline has been externally reviewed by experts prior to its publication.
+Criteria: (1) purpose and intent of external review described — any statement of the reason for review satisfies this; (2) methods used described — description of review period and comment format satisfies this, even if brief; (3) description of external reviewers — PARTIALLY MET if the professional bodies or committees from which reviewers are drawn are named (e.g., Board of Directors, specialty societies) but individual names, professions, or credentials are not provided; NOT MET only if no information whatsoever is given about who the reviewers are; FULLY MET only if individual reviewer names or professional credentials are provided; (4) outcomes gathered — FULLY MET if outcomes referenced in a named document even if not reproduced; apply Rule A; (5) how information was used — a statement that the draft was modified in response to review partially satisfies this.
+Where to look: methods, results, acknowledgements, peer review sections.
+
+Item 14 (D3_UpdateProcedure_Provided) — A procedure for updating the guideline is provided.
+Criteria: (1) statement that guideline will be updated; (2) explicit time interval or triggering criteria — a stated time interval (e.g., five years) satisfies this; named triggers also satisfy this; (3) methodology for updating — stating triggers and/or time interval IS the methodology; detailed procedural description is NOT required.
+Where to look: introduction, methods, guideline update, closing sections.
+
+════════════════════════════════════════════════════
+DOMAIN 4 — CLARITY OF PRESENTATION
+════════════════════════════════════════════════════
+
+Item 15 (D4_Recs_Specific_Unambiguous) — The recommendations are specific and unambiguous.
+Criteria: (1) statement of the recommended action — evidence summary framing is acceptable if the clinical implication is clear; (2) identification of intent or purpose; (3) identification of the relevant population — met if specified in the majority of recommendations; (4) caveats or qualifying statements if relevant — met if present where clinically warranted. Consensus statements acknowledging insufficient evidence are NOT a failure of this item.
+Where to look: recommendations, executive summary sections.
+
+Item 16 (D4_ManagementOptions_Presented) — The different options for management of the condition or health issue are clearly presented.
+Criteria: (1) description of options; (2) description of population or clinical situation most appropriate to each option.
+NOTE: Absence of a flowchart does NOT reduce the score where both criteria are substantively met.
+Where to look: executive summary, recommendations, discussion, treatment options sections.
+
+Item 17 (D4_KeyRecs_Identifiable) — Key recommendations are easily identifiable.
+Criteria: (1) key recommendations presented in summarised box, bold, underlined, or as flow charts/algorithms — bold text in a dedicated summary section satisfies this; a flowchart is one option among several, NOT a requirement; (2) specific recommendations grouped together in one section.
+Where to look: executive summary, conclusions, recommendations sections.
+
+════════════════════════════════════════════════════
+DOMAIN 5 — APPLICABILITY
+════════════════════════════════════════════════════
+
+Item 18 (D5_BarriersFacilitators_Described) — The guideline describes facilitators and barriers to its application.
+Criteria: (1) identification of types of facilitators and barriers considered; (2) methods by which information on facilitators/barriers was sought; (3) information or description of facilitators/barriers that emerged; (4) how this influenced guideline development or recommendations.
+NOTE: Dissemination plans (webinars, CME channels) describe distribution, NOT implementation barriers — they do NOT satisfy these criteria.
+Where to look: dissemination/implementation, quality indicators, barriers sections.
+
+Item 19 (D5_ApplicationTools_Provided) — The guideline provides advice and/or tools on how the recommendations can be put into practice.
+Criteria: (1) implementation section present — a dissemination plans section is partially met at most; fully met requires guidance on how to implement recommendations, not just distribute them; (2) tools and resources present — a website URL or app reference alone is NOT MET for this criterion; actual clinical tools (checklists, algorithms, decision aids, how-to manuals) must be present in the document or a referenced appendix for this criterion to reach minimally met or above; (3) directions on how to access tools — a bare website URL or app store reference without contextual guidance on what the tool contains or how to use it for this specific guideline is PARTIALLY MET; fully or mostly met requires more substantive directions or a description of tool content.
+Where to look: implementation, tools, resources, appendices sections.
+
+Item 20 (D5_ResourceImplications_Considered) — The potential resource implications of applying the recommendations have been considered.
+Criteria: (1) types of cost information considered identified; (2) methods by which cost information was sought described; (3) cost findings described; (4) how cost information was used to inform guideline development.
+Where to look: methods, cost utility, cost effectiveness, budget implications sections.
+
+Item 21 (D5_MonitoringCriteria_Presented) — The guideline presents monitoring and/or auditing criteria.
+Criteria: (1) monitoring or auditing criteria provided; (2) criteria clearly derived from key recommendations; (3) type of measure specified (process, behavioural, clinical, or outcome).
+NOTE: Future research suggestions are NOT equivalent to monitoring criteria.
+Where to look: recommendations, quality indicators, monitoring, audit sections.
+
+════════════════════════════════════════════════════
+DOMAIN 6 — EDITORIAL INDEPENDENCE
+════════════════════════════════════════════════════
+
+Item 22 (D6_FundingBody_NoInfluence) — The views of the funding body have not influenced the content of the guideline.
+Criteria: (1) name of funding body provided; (2) explicit statement that views or interests of the funding body have not influenced the final recommendations — FULLY MET only if there is an explicit statement that the funding body did not influence the recommendations; MOSTLY MET if the statement only excludes external commercial funding but the developing organisation is also the funder (i.e., the statement addresses commercial influence but does not explicitly address the developing organisation's own potential influence); structural independence (e.g., independent physician volunteer panel, multi-committee approval) contributes to this criterion but does not alone satisfy it.
+Where to look: preface, methods, acknowledgements, funding sections.
+
+Item 23 (D6_CompetingInterests_Recorded) — Competing interests of members of the guideline development group have been recorded and addressed.
+Criteria: (1) statement that interests were sought; (2) types of interests sought described; (3) methods by which interests were sought and recorded described; (4) how interests identified were addressed — disclosure and reporting of individual conflicts satisfies this; explicit recusal procedures are NOT required for this criterion to be met or mostly met.
+Where to look: preface, methods, acknowledgements, appendices, conflict of interest sections.
+
+════════════════════════════════════════════════════
+OUTPUT SCHEMA — criterion labels only, NO numeric scores:
+════════════════════════════════════════════════════
 {
-  "tier1": {
-    "guideline_title":           "<full title>",
-    "publication_year":          "<year>",
-    "update_year":               "<year or 'Not reported'>",
-    "country_of_origin":         "<country or 'International'>",
-    "organisation_publisher":    "<publisher>",
-    "authors":                   "<named individual authors if listed; if none, the authoring group or committee name as it appears on the document (e.g. 'NICE Guideline Committee'); 'Not reported' only if no authoring information of any kind is present>",
-    "guideline_type":            "<CPG | Clinical care standard | Guide>",
-    "musculoskeletal_condition": "<MSK condition addressed>"
-  },
-  "tier2": {
-    "sg_total_mentions":                    <integer — total count of sex/gender term occurrences>,
-    "sg_example_context":                   "<brief description of main contexts, or 'NA'>",
-    "mention_of_sex_or_gender":             "<Sex only | Gender only | Both | Neither>",
-    "mention_of_sex_or_gender_evidence":    "<direct quote supporting the rating, or fallback — see evidence rules>",
-    "definitions_provided":                 "<Yes | No>",
-    "definitions_provided_evidence":        "<direct quote of definition if Yes; fallback if No>",
-    "definitions_text":                     "<quoted text if Yes, else 'Not applicable'>",
-    "correct_usage_overall":                "<Correct | Unclear | Incorrect>",
-    "correct_usage_overall_evidence":       "<direct quote illustrating correct, unclear, or incorrect usage>",
-    "nonbinary_use":                        "<Nonbinary | Binary | Unclear>",
-    "nonbinary_use_evidence":               "<direct quote supporting the rating>",
-    "appropriate_categories":               "<Appropriate | Inappropriate | Unclear>",
-    "appropriate_categories_evidence":      "<direct quote supporting the rating>",
-    "non_interchangeability":               "<Noninterchangeable | Interchangeable | Unclear>",
-    "non_interchangeability_evidence":      "<direct quote showing interchangeable or distinct usage>"
-  },
-  "tier3": {
-    "pathophysiology":           {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "epidemiology":              {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "clinical_manifestation":    {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "diagnosis":                 {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "prognosis":                 {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "risk_factors":              {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "treatment_and_management":  {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "rehabilitation":            {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "preventive_strategies":     {"rating": <1|2|3>, "evidence": "<direct quote or fallback>"},
-    "cumulative_domain_score":   <integer, sum of all nine ratings>
-  },
-  "tier3b": {
-    "chair_members":                "<'Not reported' or list of name strings>",
-    "clinicians_and_commissioners": "<'Not reported' or list of name strings>",
-    "lay_members":                  "<'Not reported' or list of name strings>"
-  },
-  "overall_rating": {
-    "category":  <integer 1-5>,
-    "rationale": "<brief synthesis rationale>"
-  }
+  "D1_Objectives_Described":               {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph naming each criterion and its label>"},
+  "D1_HealthQuestions_Described":          {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D1_Population_Described":               {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D2_RelevantProfessionals_Included":     {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D2_TargetPopViews_Sought":              {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D2_TargetUsers_Defined":                {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D3_SystematicSearch_Used":              {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D3_SelectionCriteria_Described":        {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D3_EvidenceStrengthsLimits_Described":  {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D3_FormulationMethods_Described":       {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D3_BenefitsRisks_Considered":           {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D3_Link_EvidenceToRecs":                {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D3_ExternalReview_Conducted":           {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "c5": "<label>", "rationale": "<paragraph>"},
+  "D3_UpdateProcedure_Provided":           {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D4_Recs_Specific_Unambiguous":          {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D4_ManagementOptions_Presented":        {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D4_KeyRecs_Identifiable":               {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D5_BarriersFacilitators_Described":     {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D5_ApplicationTools_Provided":          {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D5_ResourceImplications_Considered":    {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "D5_MonitoringCriteria_Presented":       {"c1": "<label>", "c2": "<label>", "c3": "<label>", "rationale": "<paragraph>"},
+  "D6_FundingBody_NoInfluence":            {"c1": "<label>", "c2": "<label>", "rationale": "<paragraph>"},
+  "D6_CompetingInterests_Recorded":        {"c1": "<label>", "c2": "<label>", "c3": "<label>", "c4": "<label>", "rationale": "<paragraph>"},
+  "AGREEII_Recommendation":               "<2-4 sentence narrative summary>"
 }
-
-═══════════════════════════════════════════════════════
-TIER 2 — SEX/GENDER TERM COUNTING (sg_total_mentions)
-═══════════════════════════════════════════════════════
-Count total occurrences of: sex, gender, male, female, intersex, man, men, woman, women, trans,
-non-binary, nonbinary, genderfluid, genderdiverse, agender, pregnan*, fertil*, menopaus* and their
-inflected forms (males, females, transgender, etc.).
-sg_example_context: 1–3 sentences on main contexts terms appear; "NA" if none found.
-
-TIER 2 EVIDENCE RULES (applies to all six *_evidence fields):
-• Provide a verbatim quote from the guideline that directly supports the rating decision.
-• If sex and gender terms are entirely absent from the guideline, return:
-  "No sex or gender related terms identified in this guideline."
-• If terms are present but usage is ambiguous, return a direct quote that shows the ambiguous usage.
-• Never return an empty string or null for any evidence field.
-
-═══════════════════════════════════════════════════════
-TIER 3 RATING SCALE
-═══════════════════════════════════════════════════════
-1 = No mention of sex or gender in relation to this domain
-2 = Superficial mention — states a difference exists but no clinical implications or actionable guidance
-3 = Substantial mention — specific recommendations, data, or management differences by sex or gender
-
-For each domain, evidence must be a direct verbatim quote from the guideline.
-  • If no relevant content: evidence = "No relevant content identified", rating = 1
-  • If domain is structurally absent from guideline: evidence = "Domain not covered in guideline", rating = 1
-cumulative_domain_score = arithmetic sum of the nine domain ratings (range 9–27).
-
-═══════════════════════════════════════════════════════
-OVERALL CATEGORY DEFINITIONS
-═══════════════════════════════════════════════════════
-1 — Evidence-informed recommendations supporting different or singular approaches for men and women
-2 — Sex-specific reference values for laboratory or clinical data
-3 — Sex/gender differences in epidemiologic features or risk factors, without clinical management suggestions
-4 — Superficial mention of sex or gender only
-5 — No mention of sex or gender
-
-The overall category must be derived as a logical synthesis of Tier 2 and Tier 3 findings.
-
-═══════════════════════════════════════════════════════
-MANDATORY BOUNDARY CONDITIONS
-═══════════════════════════════════════════════════════
-1. INTERCHANGEABLE TERMINOLOGY
-   If the guideline uses sex and gender interchangeably — e.g. "gender" to mean biological attributes,
-   or "male/female" to mean social roles — set non_interchangeability = "Interchangeable" and reflect
-   this in correct_usage_overall.
-
-2. TANGENTIAL DOMAIN CONTENT
-   Content tangentially related to a domain but not substantively addressing sex/gender differences
-   (e.g. noting higher female prevalence without discussing clinical implications) must be rated 2, not 3.
-
-3. PREGNANCY OR FERTILITY ONLY
-   If the only sex- or gender-related content concerns pregnancy, fertility, or menopause without
-   broader clinical application, set overall category = 4, not 1–3.
-
-4. MISSING COMMITTEE LIST
-   If no committee membership list is present, return "Not reported" for all three tier3b fields.
-
-5. PARSING FAILURES
-   If any field cannot be reliably extracted, return "Section not clearly parsed". Never return null.
-
-6. DOCUMENT ISOLATION
-   Each document is processed in complete isolation.
-
-7. TIER 2 EVIDENCE FOR ABSENT OR AMBIGUOUS TERMS
-   For any Tier 2 field where sex and gender terms are entirely absent from the guideline, return the
-   evidence field as "No sex or gender related terms identified in this guideline."
-   For any field where terms are present but usage is ambiguous, return a direct quote showing the
-   ambiguous usage rather than a paraphrase.
-
-8. FUTURE RESEARCH SUGGESTIONS
-   Sentences or passages that recommend further study, call for additional research, or note that sex
-   or gender subgroups should be investigated in future do not constitute sex- or gender-specific
-   clinical content. They must not elevate a domain rating above 1. Only current, actionable clinical
-   content counts toward domain ratings.\
