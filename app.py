@@ -1439,11 +1439,10 @@ if st.session_state.extracted_text:
                 if "tier2" in st.session_state.parsed_data:
                     st.session_state.parsed_data["tier2"]["sg_total_mentions"] = _py_count
                     # Auto-correct non_interchangeability for sex-only guidelines.
-                    # A guideline using only sex terms (no gender terms) cannot be
-                    # interchangeable, so "Unclear" is always wrong in this case.
+                    # A guideline using only sex terms cannot be interchangeable, so any
+                    # value other than "Noninterchangeable" is wrong — override unconditionally.
                     _t2 = st.session_state.parsed_data["tier2"]
-                    if (str(_t2.get("mention_of_sex_or_gender", "")).strip() == "Sex only"
-                            and str(_t2.get("non_interchangeability", "")).strip() == "Unclear"):
+                    if str(_t2.get("mention_of_sex_or_gender", "")).strip() == "Sex only":
                         _t2["non_interchangeability"] = "Noninterchangeable"
                         _t2["non_interchangeability_evidence"] = (
                             "The guideline uses only sex-related terms throughout its body text. "
