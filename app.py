@@ -72,7 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
-# Main extraction prompt version: 2.4
+# Main extraction prompt version: 2.5
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -163,8 +163,11 @@ substantive body text — its recommendations, rationale sections, background, o
 clinical guidance. Reference list entries, citation numbers, and cited study titles
 must never be used as evidence text for any domain rating. If the only text
 mentioning sex or gender in a domain is within a reference citation, the correct
-rating for that domain is 1 and the evidence field must state:
+rating for that domain is 1 and the evidence field must state exactly:
 "No relevant body text identified — sex or gender mention appears in reference list only."
+When this fallback string is used, the evidence field must contain ONLY that string
+and nothing else. Do not append, quote, or reference any citation text, study title,
+author names, or journal details after the fallback string.
 
 ═══════════════════════════════════════════════════════
 OVERALL CATEGORY DEFINITIONS
