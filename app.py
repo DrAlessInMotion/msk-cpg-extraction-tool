@@ -203,7 +203,17 @@ MANDATORY BOUNDARY CONDITIONS
    Sentences or passages that recommend further study, call for additional research, or note that sex
    or gender subgroups should be investigated in future do not constitute sex- or gender-specific
    clinical content. They must not elevate a domain rating above 1. Only current, actionable clinical
-   content counts toward domain ratings.\
+   content counts toward domain ratings.
+
+   SELF-CHECK: Before assigning any domain rating of 2 or 3, ask: "Does the evidence I have
+   identified describe a current clinical difference or recommendation, or does it describe
+   what future research might reveal?" If the answer is future research, the rating must be 1
+   regardless of how directly sex or gender is mentioned in that sentence.
+
+   EXAMPLE OF BC8 VIOLATION TO AVOID: Rating Treatment and management as 2 because the
+   guideline states "it is possible future research may result in a better understanding of
+   how a patient's sex alters treatment benefits and harms." This sentence explicitly defers
+   to future research and contains no current clinical content. The correct rating is 1.\
 """
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
@@ -422,7 +432,6 @@ AGREE_II_USER_PROMPT_D4D6 = (
     "Return a JSON object containing only the keys for these 9 items plus "
     "AGREEII_Recommendation. Do not assess Domains 1, 2, or 3.\n\n"
     "GUIDELINE TEXT:\n{text}"
-)
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
