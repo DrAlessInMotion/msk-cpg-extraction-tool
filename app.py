@@ -72,6 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
+# Main extraction prompt version: 2.2
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -217,6 +218,18 @@ MANDATORY BOUNDARY CONDITIONS
 
 4. MISSING COMMITTEE LIST
    If no committee membership list is present, return "Not reported" for all three tier3b fields.
+
+   Committee field fallback rule: If no chair is formally designated in the document, set
+   Chair members to "Not reported." In this case, all committee members who are not explicitly
+   identified as lay members or patient representatives must be assigned to the Clinicians and
+   commissioners field. Do not return "Not reported" for Clinicians and commissioners if an
+   author list or committee member list is present in the document.
+
+   Committee name format rule: Committee member fields must contain names only, formatted as a
+   comma-separated list of full names with no additional descriptive text, parenthetical notes,
+   institutional affiliations, or role descriptions. Correct format: "Kate Gilbert, Pamela
+   Hildreth, Jean Miller". Incorrect format: "Kate Gilbert, Pamela Hildreth (patient
+   representatives from Organisation X)".
 
 5. PARSING FAILURES
    If any field cannot be reliably extracted, return "Section not clearly parsed". Never return null.
