@@ -1118,6 +1118,8 @@ for _k in ("extracted_text", "file_size", "raw_json", "parsed_data",
            "gender_results", "_last_filename", "signoff_timestamp", "supp_texts"):
     if _k not in st.session_state:
         st.session_state[_k] = None
+if "classifying_gender" not in st.session_state:
+    st.session_state.classifying_gender = False
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
@@ -1707,6 +1709,7 @@ if st.session_state.parsed_data:
     # ── Classify committee gender — Tier 3b button ───────────────────────────
     if gender_api_key:
         if st.button("🔍 Classify committee gender", key="classify_gender_t3b"):
+            st.session_state.classifying_gender = True
             with st.spinner("Classifying names via Gender API…"):
                 _new_gr: dict = {}
                 for _ckey, _nstr in [
@@ -1719,6 +1722,7 @@ if st.session_state.parsed_data:
                     else:
                         _new_gr[_ckey] = []
                 st.session_state.gender_results = _new_gr
+            st.session_state.classifying_gender = False
             st.rerun()
     else:
         st.caption("Enter a Gender API key in the sidebar to enable gender classification.")
@@ -1900,6 +1904,7 @@ if st.session_state.parsed_data:
 
     if gender_api_key:
         if st.button("🔍 Classify committee gender", key="classify_gender"):
+            st.session_state.classifying_gender = True
             with st.spinner("Classifying names via Gender API…"):
                 gr: dict = {}
                 for cat_key, names_str in [
@@ -1913,6 +1918,7 @@ if st.session_state.parsed_data:
                     else:
                         gr[cat_key] = []
                 st.session_state.gender_results = gr
+            st.session_state.classifying_gender = False
     else:
         st.caption("Enter a Gender API key in the sidebar to enable gender classification.")
 
@@ -2024,7 +2030,13 @@ if st.session_state.parsed_data:
 
         return row
 
-    if not _all_signed:
+    if st.session_state.classifying_gender:
+        st.markdown(
+            '<div class="box-info">⏳ <strong>Classification in progress.</strong> '
+            "Gender API classification is running. Export will be available once complete.</div>",
+            unsafe_allow_html=True,
+        )
+    elif not _all_signed:
         # How many remain?
         _remaining = sum(1 for k in SIGNOFF_KEYS if not st.session_state.get(k, False))
         st.markdown(
@@ -2033,8 +2045,8 @@ if st.session_state.parsed_data:
             "Tick the checkbox at the bottom of each section above.</div>",
             unsafe_allow_html=True,
         )
-    else:
-        # All signed off — check for empty AGREE II rationales as a final warning
+    elif not st.session_state.classifying_gender:
+        # All signed off and no classification in progress — check for empty AGREE II rationales
         if _empty_rats:
             st.markdown(
                 '<div class="box-warn">⚠️ <strong>Warning:</strong> '
