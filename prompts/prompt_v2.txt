@@ -1,4 +1,4 @@
-# AGREE II Prompt version: 2.3
+# AGREE II Prompt version: 2.4
 You are assessing this clinical practice guideline using the AGREE II instrument.
 For each of the 23 items, assess every individual criterion using the five-point
 continuum below. Do NOT assign a numeric score — Python calculates scores from
@@ -163,6 +163,15 @@ Where to look: recommendations, key evidence sections, appendices.
 Item 13 (D3_ExternalReview_Conducted) — The guideline has been externally reviewed by experts prior to its publication.
 Criteria: (1) purpose and intent of external review described — any statement of the reason for review satisfies this; (2) methods used described — description of review period and comment format satisfies this, even if brief; (3) description of external reviewers — PARTIALLY MET if the professional bodies or committees from which reviewers are drawn are named (e.g., Board of Directors, specialty societies) but individual names, professions, or credentials are not provided; NOT MET only if no information whatsoever is given about who the reviewers are; FULLY MET only if individual reviewer names or professional credentials are provided; (4) outcomes gathered — FULLY MET if outcomes referenced in a named document even if not reproduced; apply Rule A; (5) how information was used — a statement that the draft was modified in response to review partially satisfies this.
 Where to look: methods, results, acknowledgements, peer review sections.
+BOUNDARY CONDITION — D3 External Review: The following do NOT constitute external
+review for the purposes of this criterion and must be rated Not met: regulatory
+approval processes (e.g., NHMRC section 14A approval, TGA approval), journal peer
+review, endorsement by a professional body, and government agency sign-off. External
+review requires a structured, pre-publication consultation with independent clinical
+or methodological experts that is separate from the guideline development group, with
+documented reviewer comments and a description of how those comments were addressed.
+If the guideline only evidences regulatory approval or journal publication as external
+scrutiny, all five external review criteria must be rated Not met and the item scored 1.
 
 Item 14 (D3_UpdateProcedure_Provided) — A procedure for updating the guideline is provided.
 Criteria: (1) statement that guideline will be updated; (2) explicit time interval or triggering criteria — a stated time interval (e.g., five years) satisfies this; named triggers also satisfy this; (3) methodology for updating — stating triggers and/or time interval IS the methodology; detailed procedural description is NOT required.

@@ -72,7 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
-# Main extraction prompt version: 2.5
+# Main extraction prompt version: 2.6
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -254,21 +254,24 @@ MANDATORY BOUNDARY CONDITIONS
    For any field where terms are present but usage is ambiguous, return a direct quote showing the
    ambiguous usage rather than a paraphrase.
 
-8. FUTURE RESEARCH SUGGESTIONS
-   Sentences or passages that recommend further study, call for additional research, or note that sex
-   or gender subgroups should be investigated in future do not constitute sex- or gender-specific
-   clinical content. They must not elevate a domain rating above 1. Only current, actionable clinical
-   content counts toward domain ratings.
+8. FUTURE RESEARCH EXCLUSION (evidence gathering stage)
+   Before identifying evidence for any Tier 3 domain, identify and mentally exclude all
+   text appearing under any section or subsection heading that contains the words "Future
+   Research", "Future Directions", "Research Gaps", "Areas for Future Study", or any
+   equivalent formulation indicating prospective rather than current guidance. This
+   exclusion applies regardless of which recommendation section the Future Research
+   subsection appears within.
 
-   SELF-CHECK: Before assigning any domain rating of 2 or 3, ask: "Does the evidence I have
-   identified describe a current clinical difference or recommendation, or does it describe
-   what future research might reveal?" If the answer is future research, the rating must be 1
-   regardless of how directly sex or gender is mentioned in that sentence.
+   Once excluded, do not use any text from these sections as evidence for any Tier 3
+   domain rating under any circumstances. If the only sex- or gender-relevant text for
+   a domain appears in a Future Research subsection, the rating for that domain must be
+   1 and the evidence field must contain:
+   "No relevant body text identified — sex or gender mention appears in a Future Research
+   subsection only (BC8 applies)."
 
-   EXAMPLE OF BC8 VIOLATION TO AVOID: Rating Treatment and management as 2 because the
-   guideline states "it is possible future research may result in a better understanding of
-   how a patient's sex alters treatment benefits and harms." This sentence explicitly defers
-   to future research and contains no current clinical content. The correct rating is 1.
+   This rule applies at the point of evidence selection, not as a post-hoc check. Do not
+   assign a rating of 2 or 3 and then reconsider. Instead, exclude Future Research text
+   first, then assess what remains.
 
 9. DOMAIN ASSIGNMENT BASED ON CONTENT NOT LOCATION
    A sentence or passage must be rated within the domain whose definition matches its
