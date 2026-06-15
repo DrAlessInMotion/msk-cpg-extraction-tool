@@ -405,9 +405,24 @@ USER_PROMPT_TEMPLATE = (
     "GUIDELINE TEXT:\n{text}"
 )
 
-AGREE_II_USER_PROMPT = (
+AGREE_II_USER_PROMPT_D1D3 = (
     "Assess the following clinical practice guideline using the AGREE II framework.\n\n"
+    "Assess ONLY Domains 1, 2, and 3 (Items 1–14): Scope and Purpose, "
+    "Stakeholder Involvement, and Rigour of Development.\n\n"
+    "Return a JSON object containing only the keys for these 14 items. "
+    "Do not assess Domains 4, 5, or 6.\n\n"
     "GUIDELINE TEXT:\n{text}"
+)
+
+AGREE_II_USER_PROMPT_D4D6 = (
+    "Assess the following clinical practice guideline using the AGREE II framework.\n\n"
+    "Assess ONLY Domains 4, 5, and 6 (Items 15–23): Clarity of Presentation, "
+    "Applicability, and Editorial Independence. Also include the "
+    "AGREEII_Recommendation field.\n\n"
+    "Return a JSON object containing only the keys for these 9 items plus "
+    "AGREEII_Recommendation. Do not assess Domains 1, 2, or 3.\n\n"
+    "GUIDELINE TEXT:\n{text}"
+)
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1154,24 +1169,49 @@ if st.session_state.extracted_text:
             for _i in range(45):
                 time.sleep(1)
 
-        with st.spinner("Step 2/2 — Running AGREE II quality assessment…"):
+        with st.spinner("Step 2/2 — Running AGREE II quality assessment (Part 1: Domains 1–3)…"):
             try:
-                raw_ag = call_claude(
+                raw_ag_1 = call_claude(
                     api_key, AGREE_II_SYSTEM_PROMPT,
-                    AGREE_II_USER_PROMPT.format(text=st.session_state.extracted_text),
-                    max_tokens=6000,
+                    AGREE_II_USER_PROMPT_D1D3.format(text=st.session_state.extracted_text),
                 )
-                st.session_state.raw_agree_ii_json = raw_ag
-                # Parse criterion labels then convert to numeric scores via
-                # deterministic Python aggregation — LLM never assigns scores.
-                _raw_agree = parse_json_response(raw_ag)
-                st.session_state.agree_ii_data = build_agree_scores(_raw_agree)
-            except json.JSONDecodeError as exc:
-                st.warning(f"AGREE II — invalid JSON: {exc}. Main extraction results still available.")
-                st.session_state.agree_ii_data = {}
             except Exception as exc:
-                st.warning(f"AGREE II assessment failed: {exc}. Main extraction results still available.")
+                st.warning(f"AGREE II Part 1 failed: {exc}. Main extraction results still available.")
+                raw_ag_1 = None
+
+        if raw_ag_1:
+            with st.spinner("⏳ Waiting 45 seconds before AGREE II Part 2 to avoid API rate limits…"):
+                for _i in range(45):
+                    time.sleep(1)
+
+        with st.spinner("Step 2/2 — Running AGREE II quality assessment (Part 2: Domains 4–6)…"):
+            try:
+                raw_ag_2 = call_claude(
+                    api_key, AGREE_II_SYSTEM_PROMPT,
+                    AGREE_II_USER_PROMPT_D4D6.format(text=st.session_state.extracted_text),
+                )
+            except Exception as exc:
+                st.warning(f"AGREE II Part 2 failed: {exc}. Main extraction results still available.")
+                raw_ag_2 = None
+
+        try:
+            _merged = {}
+            if raw_ag_1:
+                _merged.update(parse_json_response(raw_ag_1))
+            if raw_ag_2:
+                _merged.update(parse_json_response(raw_ag_2))
+            if _merged:
+                st.session_state.raw_agree_ii_json = json.dumps(_merged)
+                st.session_state.agree_ii_data = build_agree_scores(_merged)
+            else:
+                st.warning("AGREE II assessment returned no results. Main extraction results still available.")
                 st.session_state.agree_ii_data = {}
+        except json.JSONDecodeError as exc:
+            st.warning(f"AGREE II — invalid JSON: {exc}. Main extraction results still available.")
+            st.session_state.agree_ii_data = {}
+        except Exception as exc:
+            st.warning(f"AGREE II assessment failed: {exc}. Main extraction results still available.")
+            st.session_state.agree_ii_data = {}
 
         # Reset sign-offs when extraction is re-run
         st.session_state.signoff_timestamp = None
