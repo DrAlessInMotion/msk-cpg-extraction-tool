@@ -1222,6 +1222,9 @@ if uploaded:
     raw_bytes = uploaded.read()
     st.session_state.file_size = len(raw_bytes)
 
+    # DEBUG (temporary) — remove after diagnosis
+    st.sidebar.write(f"DEBUG uploaded.name={uploaded.name!r} | _last_filename={st.session_state['_last_filename']!r}")
+
     if st.session_state["_last_filename"] != uploaded.name:
         st.session_state.raw_json = None
         st.session_state.parsed_data = None
