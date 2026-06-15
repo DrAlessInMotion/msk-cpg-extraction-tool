@@ -168,6 +168,34 @@ OVERALL CATEGORY DEFINITIONS
 
 The overall category must be derived as a logical synthesis of Tier 2 and Tier 3 findings.
 
+OVERALL CATEGORY SYNTHESIS RULES:
+A. Domain ratings and Overall Category are separate judgments. A domain rated 1 because
+   BC8 excluded its only sex/gender content does not reduce the evidence available to
+   other domains or to the Overall Category synthesis. Each domain is rated on its own
+   content. The Overall Category is rated on the totality of sex/gender content across
+   the whole guideline.
+
+B. BC8 exclusions apply only to domain ratings, not to Overall Category determination.
+   If a guideline's only treatment-domain sex content is a future research statement
+   (correctly rated 1 under BC8), but the guideline also contains sex differences in
+   epidemiology or risk factors, the Overall Category is still determined by that
+   epidemiological and risk factor content. Do not allow a BC8 exclusion in one domain
+   to lower the Overall Category.
+
+C. Category 3 vs Category 4 distinction: Category 3 requires sex or gender differences
+   in epidemiologic features OR risk factors — either one is sufficient. A guideline
+   that reports sex-stratified prevalence data (e.g. women representing a disproportionate
+   share of diagnoses) or identifies sex as a risk factor modifier meets Category 3,
+   even if no clinical management suggestions are present. Category 4 is reserved for
+   guidelines where sex or gender appears only incidentally — for example, only in a
+   single demographic sentence with no epidemiological or risk factor framing, or only
+   in the context of pregnancy or exclusion criteria.
+
+D. SELF-CHECK before assigning Overall Category: List the highest-quality sex/gender
+   content found across all nine domains. Identify the highest category that content
+   supports. Assign that category. Do not allow excluded content (BC8) or absent content
+   in other domains to lower the category supported by the strongest content present.
+
 ═══════════════════════════════════════════════════════
 MANDATORY BOUNDARY CONDITIONS
 ═══════════════════════════════════════════════════════
@@ -178,7 +206,10 @@ MANDATORY BOUNDARY CONDITIONS
 
 2. TANGENTIAL DOMAIN CONTENT
    Content tangentially related to a domain but not substantively addressing sex/gender differences
-   (e.g. noting higher female prevalence without discussing clinical implications) must be rated 2, not 3.
+   (e.g. noting higher female prevalence without discussing clinical implications) must be rated 2, not 3
+   at the domain level. However, such content still qualifies as Category 3 content for the Overall
+   Category determination, because Category 3 requires only sex differences in epidemiologic features
+   or risk factors — it does not require those differences to carry clinical management implications.
 
 3. PREGNANCY OR FERTILITY ONLY
    If the only sex- or gender-related content concerns pregnancy, fertility, or menopause without
@@ -218,6 +249,7 @@ MANDATORY BOUNDARY CONDITIONS
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
 AGREE_II_SYSTEM_PROMPT = """\
+# AGREE II Prompt version: 2.2
 You are assessing this clinical practice guideline using the AGREE II instrument.
 For each of the 23 items, assess every individual criterion using the five-point
 continuum below. Do NOT assign a numeric score — Python calculates scores from
@@ -229,12 +261,14 @@ Return ONLY a single valid JSON object. No preamble, no explanation, no markdown
 MANDATORY ASSESSMENT RULES
 ════════════════════════════════════════════════════
 
-RULE A — APPENDIX RULE:
-If the main document explicitly states that information exists and directs the
-reader to a named appendix, supplementary file, or eAppendix, treat that
-criterion as FULLY MET. Do NOT mark a criterion unmet because detail is in an
-appendix rather than the main text. Only treat a criterion as unmet if the main
-document makes no reference to that information being available anywhere.
+RULE A — APPENDIX AND SUPPLEMENTARY FILE RULE:
+If the main document explicitly references a named appendix, supplementary file,
+or online supplement for any criterion (for example, "see Supplementary File S2"
+or "see online supplementary table S1"), that criterion is FULLY MET. This rule
+applies equally to formal appendices within the document and to named external
+supplementary files referenced by the authors. The content of the supplementary
+file is assumed to satisfy the criterion if the reference is explicit and specific
+to the relevant topic.
 
 RULE B — SCOPE-APPROPRIATE APPRAISAL:
 Apply each criterion in the context of what is relevant to this guideline's scope.
@@ -256,6 +290,52 @@ SEQUENCING for every item:
   3. Assess each remaining criterion individually using the five labels above
   4. Write a rationale paragraph explicitly naming each criterion and its label
      e.g. "Criterion 1 (databases) fully met: ... Criterion 2 (time periods) fully met: ..."
+
+════════════════════════════════════════════════════
+ITEM-SPECIFIC RULES
+════════════════════════════════════════════════════
+
+D1 general rule: All D1 assessments must be based exclusively on what is
+explicitly stated in the guideline document. Do not infer, extrapolate, or
+import external knowledge about the condition, population, or context. If a
+characteristic is not explicitly stated in the document, it is not present for
+AGREE II purposes.
+
+D1_Objectives criterion 3: This criterion assesses whether the target population
+whose health the guideline aims to improve is identified, and/or whether the
+societal benefit is described. It does NOT assess whether the developing or
+sponsoring organisation is named. Citations of the developing organisation do not
+satisfy this criterion.
+
+D2_TargetPopViews: When patient or public representatives are formally listed as
+named authors or panel members with stated roles equivalent to those of clinical
+authors (e.g., contributing to design, data interpretation, drafting, and
+approval), this constitutes a documented strategy for incorporating patient views
+and satisfies criterion 1 at least at the Mostly met level. Participation in a
+structured evidence framework that explicitly lists patients' values and
+preferences as a required input (such as GRADE) satisfies criterion 2 at least at
+the Partially met level and criterion 4 at least at the Partially met level,
+provided the recommendation rationale references patient/public values. Do not
+require a separate patient consultation process (e.g., focus groups or surveys) if
+formal panel membership with equivalent authorship rights is documented.
+
+D3_ExternalReview: Publication in a peer-reviewed journal does NOT constitute
+external review for AGREE II purposes. Journal peer review is a publishing
+process, not a structured external review of the guideline prior to publication.
+Where the only evidence of review is journal publication, criteria 2, 3, 4, and 5
+must be rated Not met, as no methods, reviewer descriptions, outcomes, or response
+to review are described. Criterion 1 may be rated Minimally met only if there is
+at least an implicit statement that some form of prior expert review was conducted
+beyond the authorship process.
+
+D5_MonitoringCriteria: This criterion assesses whether the guideline provides
+criteria for monitoring or auditing the application of the guideline's
+recommendations at an organisational or health system level — that is, measurable
+performance indicators, quality metrics, or audit standards derived from key
+recommendations. Clinical follow-up schedules or patient monitoring guidance
+directed at individual practitioners do NOT satisfy this criterion. Only formal
+audit criteria or performance indicators that could be used to measure adherence
+to the guideline across a clinical setting or population qualify.
 
 ════════════════════════════════════════════════════
 DOMAIN 1 — SCOPE AND PURPOSE
