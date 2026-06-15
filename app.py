@@ -72,7 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
-# Main extraction prompt version: 2.6
+# Main extraction prompt version: 2.7
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -152,6 +152,14 @@ TIER 3 RATING SCALE
 1 = No mention of sex or gender in relation to this domain
 2 = Superficial mention — states a difference exists but no clinical implications or actionable guidance
 3 = Substantial mention — specific recommendations, data, or management differences by sex or gender
+
+Rating 2 clarification: A rating of 2 (superficial mention) applies when sex or gender
+is mentioned in the context of a domain, even if the mention reflects an absence of
+sex-specific evidence or an acknowledgement that sex-differentiated evidence is weak or
+lacking. An explicit statement by the guideline development group that they considered
+sex as a subgroup dimension within a domain and found the evidence insufficient, weak,
+or non-existent constitutes a superficial mention (Rating 2) in that domain. Rating 1
+is reserved for domains where sex or gender is not mentioned at all in any context.
 
 For each domain, evidence must be a direct verbatim quote from the guideline.
   • If no relevant content: evidence = "No relevant content identified", rating = 1
@@ -291,7 +299,17 @@ MANDATORY BOUNDARY CONDITIONS
    A piece of evidence can only justify a rating of 2 or 3 in ONE domain — the domain
    whose definition it most directly satisfies. If the same text has already been used
    to justify a rating in another domain, it must not be used again to justify a rating
-   in a different domain.\
+   in a different domain.
+
+10. REFERENCE LIST S/G COUNT NOTE (BC11)
+    When completing the Example/Context field, add the following note on a new line at
+    the end of your response for that field: "Reference list note: Of the [total] S/G
+    term matches, [X] appear in the reference list and appendices and [Y] appear in the
+    body text (figures provided by the counting tool). Note any patterns driving the
+    reference list count, such as journal abbreviations (e.g., 'Man Ther' matching
+    'man') or study titles containing sex or gender terms."
+    Replace [total], [X], and [Y] with the values provided in the Note for BC11 at the
+    top of the user message.\
 """
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
@@ -579,6 +597,7 @@ def build_supp_block(supp_texts: dict) -> str:
 
 USER_PROMPT_TEMPLATE = (
     "Extract structured data from the following clinical practice guideline.\n\n"
+    "{sg_split_note}\n\n"
     "GUIDELINE TEXT:\n{text}"
 )
 
@@ -860,6 +879,25 @@ def count_sg_terms(text: str) -> int:
     # Remove pronoun phrases first so they cannot contribute to the count
     scrubbed = _PRONOUN_STRIP.sub(" ", text)
     return sum(len(p.findall(scrubbed)) for p in _SG_COMPILED)
+
+
+_REFERENCES_HEADING = _re.compile(
+    r'^\s*(References|Bibliography|Reference\s+List|References\s+and\s+Notes)\s*$',
+    _re.IGNORECASE | _re.MULTILINE,
+)
+
+
+def split_text_at_references(text: str) -> tuple[str, str]:
+    """Split document text at the first references/bibliography heading.
+
+    Returns (body_text, ref_section_text). If no heading is found, returns
+    (text, "") so the full text is treated as body text.
+    """
+    match = _REFERENCES_HEADING.search(text)
+    if match:
+        return text[:match.start()], text[match.start():]
+    return text, ""
+
 
 def call_claude(api_key: str, system: str, user_text: str, max_tokens: int = 8192) -> str:
     client = anthropic.Anthropic(api_key=api_key)
@@ -1158,7 +1196,8 @@ def ev_block(evidence_text: str) -> None:
 
 for _k in ("extracted_text", "file_size", "raw_json", "parsed_data",
            "raw_agree_ii_json", "agree_ii_data",
-           "gender_results", "_last_filename", "signoff_timestamp", "supp_texts"):
+           "gender_results", "_last_filename", "signoff_timestamp", "supp_texts",
+           "total_sg_count", "body_sg_count", "ref_section_sg_count"):
     if _k not in st.session_state:
         st.session_state[_k] = None
 if "classifying_gender" not in st.session_state:
@@ -1422,12 +1461,30 @@ if st.session_state.extracted_text:
             )
 
     if run:
+        # Pre-compute S/G split counts before the API call so they can be injected
+        # into the user message and stored in session state.
+        _full_text = st.session_state.extracted_text
+        _body_text, _ref_text = split_text_at_references(_full_text)
+        _total_sg   = count_sg_terms(_full_text)
+        _ref_sg     = count_sg_terms(_ref_text)
+        _body_sg    = _total_sg - _ref_sg
+        st.session_state.total_sg_count       = _total_sg
+        st.session_state.body_sg_count        = _body_sg
+        st.session_state.ref_section_sg_count = _ref_sg
+
         with st.spinner("Step 1/2 — Running main extraction (Tiers 1–3 + Overall rating)…"):
             try:
                 raw = call_claude(
                     api_key, SYSTEM_PROMPT,
                     USER_PROMPT_TEMPLATE.format(
                         text=st.session_state.extracted_text,
+                        sg_split_note=(
+                            f"Note for BC11: The S/G term counting tool has calculated that the "
+                            f"document contains {_total_sg} total S/G term matches, of which an "
+                            f"estimated {_ref_sg} appear in the reference list and appendices "
+                            f"(from the References heading to end of document), and {_body_sg} "
+                            f"appear in the body text."
+                        ),
                     ),
                 )
                 st.session_state.raw_json = raw
@@ -1435,7 +1492,7 @@ if st.session_state.extracted_text:
                 # Override LLM sg_total_mentions with deterministic Python count.
                 # The LLM consistently miscounts by including gendered pronouns;
                 # the Python counter applies the protocol term list precisely.
-                _py_count = count_sg_terms(st.session_state.extracted_text)
+                _py_count = _total_sg
                 if "tier2" in st.session_state.parsed_data:
                     st.session_state.parsed_data["tier2"]["sg_total_mentions"] = _py_count
                     # Auto-correct non_interchangeability for sex-only guidelines.
