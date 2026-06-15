@@ -1219,13 +1219,9 @@ uploaded = st.file_uploader(
 )
 
 if uploaded:
-    raw_bytes = uploaded.read()
-    st.session_state.file_size = len(raw_bytes)
-
-    # DEBUG (temporary) — remove after diagnosis
-    st.sidebar.write(f"DEBUG uploaded.name={uploaded.name!r} | _last_filename={st.session_state['_last_filename']!r}")
-
-    if st.session_state["_last_filename"] != uploaded.name:
+    # Compare by filename string only — never store or compare the file object itself.
+    # This prevents false new-file detection on re-runs caused by unstable file object references.
+    if uploaded.name != st.session_state["_last_filename"]:
         st.session_state.raw_json = None
         st.session_state.parsed_data = None
         st.session_state.raw_agree_ii_json = None
@@ -1233,11 +1229,16 @@ if uploaded:
         st.session_state.gender_results = None
         st.session_state.signoff_timestamp = None
         st.session_state.supp_texts = {}
+        st.session_state.extracted_text = None
+        st.session_state.file_size = None
         st.session_state["_last_filename"] = uploaded.name
         for _k in ("t3b_chair", "t3b_clin", "t3b_lay"):
             st.session_state.pop(_k, None)
 
     if st.session_state.extracted_text is None:
+        # Read file bytes inside this guard only — never on re-runs where extraction is cached.
+        raw_bytes = uploaded.read()
+        st.session_state.file_size = len(raw_bytes)
         with st.spinner("Extracting PDF text…"):
             try:
                 text = (
@@ -1305,30 +1306,37 @@ for i in range(1, NUM_SUPPS + 1):
             label_visibility="collapsed",
         )
     if s_file and s_label:
-        s_bytes = s_file.read()
-        with st.spinner(f"Extracting text from '{s_label}'…"):
-            try:
-                s_text = (
-                    extract_text_pymupdf(s_bytes)
-                    if use_pymupdf
-                    else extract_text_pdfplumber(s_bytes)
-                )
-                supp_texts[s_label] = s_text
-                s_cy = character_yield(s_text, len(s_bytes))
-                if s_cy < 0.1:
-                    st.markdown(
-                        f'<div class="box-warn">⚠️ Low character yield ({s_cy:.3f}) for '
-                        f'"{s_label}". Document may be scanned.</div>',
-                        unsafe_allow_html=True,
+        # Only extract if this label is not already cached — avoids re-extraction on re-runs.
+        if s_label not in supp_texts:
+            s_bytes = s_file.read()
+            with st.spinner(f"Extracting text from '{s_label}'…"):
+                try:
+                    s_text = (
+                        extract_text_pymupdf(s_bytes)
+                        if use_pymupdf
+                        else extract_text_pdfplumber(s_bytes)
                     )
-                else:
-                    st.markdown(
-                        f'<div class="box-ok">✓ "{s_label}" extracted — '
-                        f'{len(s_text):,} characters.</div>',
-                        unsafe_allow_html=True,
-                    )
-            except Exception as exc:
-                st.error(f"Failed to extract '{s_label}': {exc}")
+                    supp_texts[s_label] = s_text
+                    s_cy = character_yield(s_text, len(s_bytes))
+                    if s_cy < 0.1:
+                        st.markdown(
+                            f'<div class="box-warn">⚠️ Low character yield ({s_cy:.3f}) for '
+                            f'"{s_label}". Document may be scanned.</div>',
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(
+                            f'<div class="box-ok">✓ "{s_label}" extracted — '
+                            f'{len(s_text):,} characters.</div>',
+                            unsafe_allow_html=True,
+                        )
+                except Exception as exc:
+                    st.error(f"Failed to extract '{s_label}': {exc}")
+        else:
+            st.markdown(
+                f'<div class="box-ok">✓ "{s_label}" ready ({len(supp_texts[s_label]):,} characters cached).</div>',
+                unsafe_allow_html=True,
+            )
     elif s_file and not s_label:
         st.markdown(
             '<div class="box-warn">⚠️ Please enter a label for this supplement.</div>',
