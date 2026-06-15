@@ -895,16 +895,25 @@ _REFERENCES_HEADING = _re.compile(
     _re.IGNORECASE | _re.MULTILINE,
 )
 
+# XML tag artefacts produced by some journal-format PDFs, e.g.:
+#   TAGEDAPTARAH1REFERENCESTAGEDAPTARAEND
+_REFERENCES_HEADING_XML = _re.compile(r'TAGED\w*REFERENCES\w*', _re.IGNORECASE)
+
 
 def split_text_at_references(text: str) -> tuple[str, str]:
     """Split document text at the first references/bibliography heading.
 
+    Checks both standard standalone headings and XML tag artefacts produced by
+    some journal-format PDFs. Uses whichever marker appears first.
     Returns (body_text, ref_section_text). If no heading is found, returns
     (text, "") so the full text is treated as body text.
     """
-    match = _REFERENCES_HEADING.search(text)
-    if match:
-        return text[:match.start()], text[match.start():]
+    m1 = _REFERENCES_HEADING.search(text)
+    m2 = _REFERENCES_HEADING_XML.search(text)
+    matches = [m for m in (m1, m2) if m is not None]
+    if matches:
+        split_pos = min(m.start() for m in matches)
+        return text[:split_pos], text[split_pos:]
     return text, ""
 
 
