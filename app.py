@@ -72,7 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
-# Main extraction prompt version: 2.2
+# Main extraction prompt version: 2.3
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -257,7 +257,14 @@ MANDATORY BOUNDARY CONDITIONS
    EXAMPLE OF BC8 VIOLATION TO AVOID: Rating Treatment and management as 2 because the
    guideline states "it is possible future research may result in a better understanding of
    how a patient's sex alters treatment benefits and harms." This sentence explicitly defers
-   to future research and contains no current clinical content. The correct rating is 1.\
+   to future research and contains no current clinical content. The correct rating is 1.
+
+9. DOMAIN ASSIGNMENT BASED ON CONTENT NOT LOCATION
+   A sentence or passage must be rated within the domain whose definition matches its
+   substantive content, not the section of the guideline where it physically appears.
+   For example, a sentence about risk factors appearing within a diagnosis section must
+   be rated under Risk Factors, not Diagnosis. Each domain rating must reflect only
+   content that directly addresses that domain's specific definition.\
 """
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
