@@ -72,7 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
-# Main extraction prompt version: 2.7
+# Main extraction prompt version: 2.8
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -301,15 +301,12 @@ MANDATORY BOUNDARY CONDITIONS
    to justify a rating in another domain, it must not be used again to justify a rating
    in a different domain.
 
-10. REFERENCE LIST S/G COUNT NOTE (BC11)
-    When completing the Example/Context field, add the following note on a new line at
-    the end of your response for that field: "Reference list note: Of the [total] S/G
-    term matches, [X] appear in the reference list and appendices and [Y] appear in the
-    body text (figures provided by the counting tool). Note any patterns driving the
-    reference list count, such as journal abbreviations (e.g., 'Man Ther' matching
-    'man') or study titles containing sex or gender terms."
-    Replace [total], [X], and [Y] with the values provided in the Note for BC11 at the
-    top of the user message.\
+10. REFERENCE LIST S/G COUNT (BC11)
+    The user message provides a pre-calculated split of S/G term matches into body text
+    and reference list counts. Use this information internally to inform your assessment
+    of sg_total_mentions and the Example/Context field. Do NOT reproduce the count note,
+    the split figures, or any "Reference list note:" text in any output field — these
+    are backend diagnostics for the tool and must not appear in the JSON response.\
 """
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
