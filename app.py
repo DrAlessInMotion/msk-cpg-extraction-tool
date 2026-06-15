@@ -965,25 +965,39 @@ def classify_gender(first_name: str, gender_api_key: str) -> dict:
         return {"gender": "unknown", "confidence": 0}
 
 
+def get_first_names_from_field(field_value: str) -> list[str]:
+    """Split a comma-separated committee field into individual first names.
+
+    Returns an empty list if the field is empty or "Not reported".
+    Strips whitespace and extracts the first word of each name.
+    """
+    if not field_value or field_value.strip().lower() in {"not reported", "not available", "none"}:
+        return []
+    names = [n.strip() for n in field_value.split(",") if n.strip()]
+    first_names = [n.split()[0] for n in names if n.split()]
+    return first_names
+
+
 def classify_name_list(names_text: str, gender_api_key: str) -> list[dict]:
-    """Classify all names in a semicolon- or newline-separated string.
+    """Classify all names in a comma-, semicolon-, or newline-separated string.
 
     Parsing steps for each entry:
-      1. Split the full text on semicolons to isolate individual members.
-      2. Within each semicolon-chunk, split further on newlines.
-      3. Strip leading/trailing whitespace from every token.
-      4. Call extract_first_name() to obtain the given name only
+      1. Split the full text on commas (primary delimiter for AI output),
+         then on semicolons, then on newlines for legacy formats.
+      2. Strip leading/trailing whitespace from every token.
+      3. Call extract_first_name() to obtain the given name only
          (skipping titles such as Dr, Prof, Mr, Mrs, Ms, Miss).
-      5. Pass that given name to the Gender API.
-      6. Record the original full entry string in the audit trail.
+      4. Pass that given name to the Gender API.
+      5. Record the original full entry string in the audit trail.
     """
+    _SKIP_VALS = {"not reported", "not available", "none"}
     entries: list[str] = []
-    for chunk in names_text.split(";"):
-        for line in chunk.splitlines():
-            entry = line.strip()
-            _SKIP_VALS = {"not reported", "not available", "none"}
-            if entry and entry.lower() not in _SKIP_VALS:
-                entries.append(entry)
+    for comma_chunk in names_text.split(","):
+        for semi_chunk in comma_chunk.split(";"):
+            for line in semi_chunk.splitlines():
+                entry = line.strip()
+                if entry and entry.lower() not in _SKIP_VALS:
+                    entries.append(entry)
 
     results = []
     for name in entries:
