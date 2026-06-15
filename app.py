@@ -1504,6 +1504,14 @@ if st.session_state.extracted_text:
                             "interchangeable use of sex and gender satisfies the Noninterchangeable "
                             "criterion by default."
                         )
+                    # Strip BC11 backend diagnostic text from sg_example_context.
+                    # The model occasionally appends the injected count note
+                    # ("Reference list note: ...") to this field despite prompt
+                    # instruction; remove everything from that marker onwards.
+                    _ctx = _t2.get("sg_example_context", "")
+                    if "Reference list note:" in _ctx:
+                        _ctx = _ctx[:_ctx.index("Reference list note:")].rstrip(" .,;")
+                        _t2["sg_example_context"] = _ctx
             except json.JSONDecodeError as exc:
                 st.error(f"Main extraction — Claude returned invalid JSON: {exc}")
                 with st.expander("Raw response"):
