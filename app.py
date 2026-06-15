@@ -614,10 +614,13 @@ def extract_text_pymupdf(pdf_bytes: bytes) -> str:
 def extract_text_pdfplumber(pdf_bytes: bytes) -> str:
     chunks: list[str] = []
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-        for page in pdf.pages:
-            t = page.extract_text()
-            if t:
-                chunks.append(t)
+        for i, page in enumerate(pdf.pages):
+            try:
+                t = page.extract_text()
+                if t:
+                    chunks.append(t)
+            except Exception as e:
+                chunks.append(f"[Page {i+1}: extraction failed — {e}]")
     return "\n".join(chunks)
 
 
