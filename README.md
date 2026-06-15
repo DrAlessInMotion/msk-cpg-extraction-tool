@@ -38,7 +38,14 @@ A live deployment of the finalised tool is available at:
 
 ### Option 2 — Run locally
 
-Requirements: Python 3.9+, an Anthropic API key
+**Recommended runtime: Python 3.12**
+
+Python 3.14 has asyncio incompatibilities with the current Streamlit version that
+cause `Event loop is closed` errors on shutdown. Python 3.12 is the recommended
+and tested runtime for this project. Python 3.9–3.12 should work; Python 3.13+
+is not recommended.
+
+Requirements: Python 3.12, an Anthropic API key
 
 ```bash
 git clone https://github.com/DrAlessInMotion/msk-cpg-extraction-tool.git
