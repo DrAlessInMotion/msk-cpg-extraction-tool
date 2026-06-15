@@ -1234,17 +1234,20 @@ if uploaded:
         for _k in ("t3b_chair", "t3b_clin", "t3b_lay"):
             st.session_state.pop(_k, None)
 
-    with st.spinner("Extracting PDF text…"):
-        try:
-            text = (
-                extract_text_pymupdf(raw_bytes)
-                if use_pymupdf
-                else extract_text_pdfplumber(raw_bytes)
-            )
-            st.session_state.extracted_text = text
-        except Exception as exc:
-            st.error(f"PDF extraction failed: {exc}")
-            st.stop()
+    if st.session_state.extracted_text is None:
+        with st.spinner("Extracting PDF text…"):
+            try:
+                text = (
+                    extract_text_pymupdf(raw_bytes)
+                    if use_pymupdf
+                    else extract_text_pdfplumber(raw_bytes)
+                )
+                st.session_state.extracted_text = text
+            except Exception as exc:
+                st.error(f"PDF extraction failed: {exc}")
+                st.stop()
+
+    text = st.session_state.extracted_text
 
     cy = character_yield(text, st.session_state.file_size)
     c1, c2, c3 = st.columns(3)
