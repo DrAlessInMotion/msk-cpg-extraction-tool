@@ -1478,6 +1478,16 @@ if st.session_state.extracted_text:
                 unsafe_allow_html=True,
             )
 
+    # Large document guard: truncate if text exceeds safe API input size
+    _MAX_CHARS = 400_000
+    if len(st.session_state.extracted_text) > _MAX_CHARS:
+        st.warning(
+            f"⚠️ This document is very large ({len(st.session_state.extracted_text):,} characters). "
+            f"Text has been truncated to the first {_MAX_CHARS:,} characters for processing. "
+            f"Review the output carefully and check that key sections were not cut off."
+        )
+        st.session_state.extracted_text = st.session_state.extracted_text[:_MAX_CHARS]
+
     if run:
         # Pre-compute S/G split counts before the API call so they can be injected
         # into the user message and stored in session state.

@@ -1,0 +1,3 @@
+[server]
+headersTimeout = 900
+connectionTimeout = 900
