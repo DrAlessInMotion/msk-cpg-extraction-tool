@@ -72,7 +72,7 @@ st.markdown("""
 
 # Fix 2 + 5: Tier 2 evidence fields added; Fix 5 boundary condition added
 SYSTEM_PROMPT = """\
-# Main extraction prompt version: 2.3
+# Main extraction prompt version: 2.4
 You are a systematic review data extractor with expertise in sex and gender health research. \
 Extract structured data from clinical practice guidelines (CPGs) according to the schema below.
 
@@ -157,6 +157,14 @@ For each domain, evidence must be a direct verbatim quote from the guideline.
   • If no relevant content: evidence = "No relevant content identified", rating = 1
   • If domain is structurally absent from guideline: evidence = "Domain not covered in guideline", rating = 1
 cumulative_domain_score = arithmetic sum of the nine domain ratings (range 9–27).
+
+EVIDENCE FIELD REQUIREMENT: Evidence text must be drawn from the guideline's
+substantive body text — its recommendations, rationale sections, background, or
+clinical guidance. Reference list entries, citation numbers, and cited study titles
+must never be used as evidence text for any domain rating. If the only text
+mentioning sex or gender in a domain is within a reference citation, the correct
+rating for that domain is 1 and the evidence field must state:
+"No relevant body text identified — sex or gender mention appears in reference list only."
 
 ═══════════════════════════════════════════════════════
 OVERALL CATEGORY DEFINITIONS
@@ -264,7 +272,20 @@ MANDATORY BOUNDARY CONDITIONS
    substantive content, not the section of the guideline where it physically appears.
    For example, a sentence about risk factors appearing within a diagnosis section must
    be rated under Risk Factors, not Diagnosis. Each domain rating must reflect only
-   content that directly addresses that domain's specific definition.\
+   content that directly addresses that domain's specific definition.
+
+   SELF-CHECK before assigning any domain rating of 2 or 3: Ask — does the evidence
+   text describe content that directly addresses THIS domain's specific definition?
+     • If the evidence text describes risk factors, it belongs in Risk Factors
+       regardless of where it appears in the guideline.
+     • If it describes epidemiological prevalence or incidence, it belongs in
+       Epidemiology.
+     • If it describes disease mechanisms or biological pathways, it belongs in
+       Pathophysiology.
+   A piece of evidence can only justify a rating of 2 or 3 in ONE domain — the domain
+   whose definition it most directly satisfies. If the same text has already been used
+   to justify a rating in another domain, it must not be used again to justify a rating
+   in a different domain.\
 """
 
 # AGREE II system prompt — full per-item criteria, 1-7 scale
