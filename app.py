@@ -953,8 +953,15 @@ def build_agree_scores(raw_agree: dict) -> dict:
     result["AGREEII_Recommendation"] = raw_agree.get("AGREEII_Recommendation", "")
     return result
 
-_TITLES = {"dr", "prof", "mr", "mrs", "ms", "sir", "dame", "lord", "rev",
-           "hon", "a/prof", "assoc", "mx", "miss"}
+# Honourific/title tokens stripped before extracting first name for Gender API.
+# Covers single-word titles and both words of "Associate Professor" (each token matched individually).
+# Punctuation variants (e.g. "Dr." vs "Dr") are handled by _NAME_STRIP before lookup.
+_TITLES = {
+    "dr", "prof", "professor",
+    "mr", "mrs", "ms", "miss", "mx",
+    "sir", "dame", "lord", "rev", "hon",
+    "a/prof", "assoc", "associate",
+}
 
 # Punctuation stripped from candidate tokens before checking / returning
 _NAME_STRIP = str.maketrans("", "", ".,;:()")
