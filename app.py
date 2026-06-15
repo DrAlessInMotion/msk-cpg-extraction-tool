@@ -871,8 +871,20 @@ _PRONOUN_STRIP = _re.compile(
 _SG_COMPILED = [_re.compile(p, _re.IGNORECASE) for p in _SG_PATTERNS]
 
 
+def _preprocess_sg_text(text: str) -> str:
+    """Clean text before S/G counting or reference splitting.
+
+    Removes soft hyphens and rejoins hyphenated line breaks so that PDF
+    extraction artefacts like 'man-\\nagement' are not counted as 'man'.
+    """
+    text = text.replace('­', '')      # remove soft hyphens
+    text = _re.sub(r'-\n', '', text)       # rejoin hyphenated line breaks
+    return text
+
+
 def count_sg_terms(text: str) -> int:
     """Return deterministic count of permitted S/G terms, excluding pronouns."""
+    text = _preprocess_sg_text(text)
     # Remove pronoun phrases first so they cannot contribute to the count
     scrubbed = _PRONOUN_STRIP.sub(" ", text)
     return sum(len(p.findall(scrubbed)) for p in _SG_COMPILED)
@@ -1460,7 +1472,8 @@ if st.session_state.extracted_text:
     if run:
         # Pre-compute S/G split counts before the API call so they can be injected
         # into the user message and stored in session state.
-        _full_text = st.session_state.extracted_text
+        # Pre-process once so the split and all three counts use the same clean text.
+        _full_text = _preprocess_sg_text(st.session_state.extracted_text)
         _body_text, _ref_text = split_text_at_references(_full_text)
         _total_sg   = count_sg_terms(_full_text)
         _ref_sg     = count_sg_terms(_ref_text)
