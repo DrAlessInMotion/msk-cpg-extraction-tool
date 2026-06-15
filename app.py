@@ -536,7 +536,7 @@ def build_supp_block(supp_texts: dict) -> str:
 
 USER_PROMPT_TEMPLATE = (
     "Extract structured data from the following clinical practice guideline.\n\n"
-    "GUIDELINE TEXT:\n{text}{supplements}"
+    "GUIDELINE TEXT:\n{text}"
 )
 
 AGREE_II_USER_PROMPT_D1D3 = (
@@ -1362,7 +1362,6 @@ if st.session_state.extracted_text:
                     api_key, SYSTEM_PROMPT,
                     USER_PROMPT_TEMPLATE.format(
                         text=st.session_state.extracted_text,
-                        supplements=build_supp_block(st.session_state.supp_texts or {}),
                     ),
                 )
                 st.session_state.raw_json = raw
